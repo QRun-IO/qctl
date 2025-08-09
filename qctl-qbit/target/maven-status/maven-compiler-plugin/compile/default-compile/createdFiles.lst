@@ -1,6 +1,0 @@
-io/qrun/qctl/qbit/QbitCommand.class
-io/qrun/qctl/qbit/QbitPlugin.class
-io/qrun/qctl/qbit/lock/Lockfile$PackageEntry.class
-io/qrun/qctl/qbit/lock/Lockfile.class
-io/qrun/qctl/qbit/ResolveCommand.class
-io/qrun/qctl/qbit/lock/LockfileIO.class
