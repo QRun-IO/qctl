@@ -12,11 +12,21 @@ import picocli.CommandLine.Option;
 public class CachePruneCommand implements Runnable {
   @Option(names = "--max-size", required = true, description = "Target size, e.g., 500MB")
   String maxSize;
+  // For tests, allow overriding cache root
+  final java.nio.file.Path rootOverride;
+
+  public CachePruneCommand() {
+    this.rootOverride = null;
+  }
+
+  CachePruneCommand(java.nio.file.Path rootOverride) {
+    this.rootOverride = rootOverride;
+  }
 
   @Override
   public void run() {
     long target = parseSize(maxSize);
-    Path root = io.qrun.qctl.core.sys.SystemPaths.cacheDir();
+    Path root = rootOverride != null ? rootOverride : io.qrun.qctl.core.sys.SystemPaths.cacheDir();
     try {
       long total = Files.walk(root).filter(Files::isRegularFile).mapToLong(CachePruneCommand::size).sum();
       if (total <= target) {

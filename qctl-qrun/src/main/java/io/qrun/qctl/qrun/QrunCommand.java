@@ -3,7 +3,7 @@ package io.qrun.qctl.qrun;
 import picocli.CommandLine.Command;
 
 @Command(name = "qrun", description = "qRun lifecycle commands", mixinStandardHelpOptions = true,
-    subcommands = { StatusCommand.class })
+    subcommands = { StatusCommand.class, PackageCommand.class, PublishCommand.class })
 public class QrunCommand implements Runnable {
   @Override
   public void run() {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/qctl-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-integration-tests/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-integration-tests/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qbit/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qbit/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qqq/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qqq/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qrun/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qrun/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qstudio/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-qstudio/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-shared/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/qctl-shared/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

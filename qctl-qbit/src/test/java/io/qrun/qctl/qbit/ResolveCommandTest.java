@@ -1,0 +1,33 @@
+package io.qrun.qctl.qbit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.qrun.qctl.qbit.lock.Lockfile;
+import io.qrun.qctl.qbit.lock.LockfileIO;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+
+class ResolveCommandTest {
+  @Test
+  void summary_counts_packages() throws Exception {
+    assertThat(ResolveCommand.summary(0)).contains("0");
+    assertThat(ResolveCommand.summary(3)).contains("3");
+  }
+
+  @Test
+  void hermetic_reads_lockfile() throws Exception {
+    Path tmp = Files.createTempFile("qbits", ".lock");
+    Lockfile lf = new Lockfile();
+    Lockfile.PackageEntry e = new Lockfile.PackageEntry();
+    e.name = "io.qbits/auth";
+    e.version = "2.3.1";
+    e.resolved = "https://registry.qrun.io/io.qbits/auth/2.3.1.tgz";
+    e.integrity = "sha512-b8c1...";
+    lf.packages.put(e.name, e);
+    LockfileIO.writeAtomic(tmp, lf);
+
+    Lockfile re = LockfileIO.read(tmp);
+    assertThat(re.packages).hasSize(1);
+  }
+}

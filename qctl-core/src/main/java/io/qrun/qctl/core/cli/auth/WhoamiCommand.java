@@ -10,6 +10,6 @@ public class WhoamiCommand implements Runnable {
   @Override
   public void run() {
     Optional<String> apiKey = new TokenStore(SystemPaths.configDir()).readApiKey();
-    System.out.println("auth whoami: api-key=" + (apiKey.isPresent() ? "set" : "not set"));
+    System.out.println("api-key: " + (apiKey.isPresent() ? "set" : "not set"));
   }
 }

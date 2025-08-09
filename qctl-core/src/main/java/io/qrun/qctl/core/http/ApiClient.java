@@ -21,7 +21,12 @@ public class ApiClient {
   }
 
   public ApiClient(Duration requestTimeout, HeaderProvider headerProvider) {
-    this.client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
+    this(HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build(), requestTimeout, headerProvider);
+  }
+
+  // Visible for tests
+  ApiClient(HttpClient client, Duration requestTimeout, HeaderProvider headerProvider) {
+    this.client = client;
     this.requestTimeout = requestTimeout;
     this.headerProvider = headerProvider;
   }
@@ -36,12 +41,24 @@ public class ApiClient {
     return send(req, type);
   }
 
+  public <T> T postJson(URI uri, Object body, Class<T> type) throws IOException, InterruptedException, ApiException {
+    byte[] payload = mapper.writeValueAsBytes(body);
+    HttpRequest.Builder b = HttpRequest.newBuilder(uri)
+        .timeout(requestTimeout)
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofByteArray(payload));
+    headerProvider.apply(b);
+    HttpRequest req = b.build();
+    return send(req, type);
+  }
+
   public <T> T send(HttpRequest req, Class<T> type) throws IOException, InterruptedException, ApiException {
     int attempts = 0;
     long backoff = 250;
     while (true) {
       attempts++;
-      HttpResponse<byte[]> resp = client.send(req, HttpResponse.BodyHandlers.ofByteArray());
+      HttpResponse<byte[]> resp = sendOnce(req);
       int sc = resp.statusCode();
       if (sc >= 200 && sc < 300) {
         if (type == Void.class) return null;
@@ -59,6 +76,11 @@ public class ApiClient {
       }
       throw toApiException(resp, 1);
     }
+  }
+
+  // For testability: single HTTP round-trip; override in tests
+  protected HttpResponse<byte[]> sendOnce(HttpRequest req) throws IOException, InterruptedException {
+    return client.send(req, HttpResponse.BodyHandlers.ofByteArray());
   }
 
   private ApiException toApiException(HttpResponse<byte[]> resp, int exitCode) {
