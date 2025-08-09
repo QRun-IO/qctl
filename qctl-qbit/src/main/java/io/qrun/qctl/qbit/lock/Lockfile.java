@@ -22,6 +22,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Lockfile
 {
+   /***************************************************************************
+    * qBit lockfile v1 model used to capture resolved dependencies deterministically.
+    *
+    * Why: Provides a hermetic snapshot of qBits with resolved URLs and integrity hashes.
+    * @since 0.1.0
+    ***************************************************************************/
    public int                       lockfileVersion = 1;
    public String                    generatedAt     = Instant.now().toString();
    public Map<String, PackageEntry> packages        = new LinkedHashMap<>();
@@ -31,6 +37,12 @@ public class Lockfile
    @JsonInclude(JsonInclude.Include.NON_NULL)
    public static class PackageEntry
    {
+      /***************************************************************************
+       * Entry describing a single resolved qBit artifact in the lockfile.
+       *
+       * Why: Encapsulates resolved URL, integrity checksum, and dependency edges.
+       * @since 0.1.0
+       ***************************************************************************/
       public String              name;
       public String              version;
       public String              resolved;

@@ -18,6 +18,11 @@ import io.qrun.qctl.shared.spi.CommandPlugin;
 
 public final class QrunPlugin implements CommandPlugin
 {
+   /***************************************************************************
+    * Provides the root qrun command for registration.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public Object getCommand()
    {

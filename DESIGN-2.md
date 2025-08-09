@@ -760,10 +760,8 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/Template' }
-              examples:
-                fixed:
-                  value:
-                    - $ref: '#/components/examples/exTemplate/value'
+              example:
+                - $ref: '#/components/examples/exTemplate/value'
         '401': { $ref: '#/components/responses/Unauthorized401' }
         '429': { $ref: '#/components/responses/TooManyRequests429' }
         '503': { $ref: '#/components/responses/ServerError503' }
@@ -802,7 +800,7 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/TemplateVersion' }
-              examples: { fixed: { $ref: '#/components/examples/exTemplateVersions' } }
+              example: { $ref: '#/components/examples/exTemplateVersions/value' }
         '401': { $ref: '#/components/responses/Unauthorized401' }
   /v1/templates/{templateId}/versions/{version}:
     get:
@@ -862,7 +860,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/QBit' }
-              examples: { fixed: { $ref: '#/components/examples/exQBit' } }
+              example: { $ref: '#/components/examples/exQBit/value' }
         '401': { $ref: '#/components/responses/Unauthorized401' }
         '404': { $ref: '#/components/responses/NotFound404' }
         '429': { $ref: '#/components/responses/TooManyRequests429' }
@@ -914,7 +912,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/Artifact' }
-            examples: { fixed: { $ref: '#/components/examples/exArtifact' } }
+            example: { $ref: '#/components/examples/exArtifact/value' }
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -923,13 +921,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Artifact' }
-              examples: { fixed: { $ref: '#/components/examples/exArtifact' } }
+              example: { $ref: '#/components/examples/exArtifact/value' }
         '200':
           description: OK (idempotent replay)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Artifact' }
-              examples: { fixed: { $ref: '#/components/examples/exArtifact' } }
+              example: { $ref: '#/components/examples/exArtifact/value' }
         '400':
           description: Bad Request
           content:
@@ -953,7 +951,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Artifact' }
-              examples: { fixed: { $ref: '#/components/examples/exArtifact' } }
+              example: { $ref: '#/components/examples/exArtifact/value' }
         '401': { $ref: '#/components/responses/Unauthorized401' }
         '404': { $ref: '#/components/responses/NotFound404' }
   /v1/releases:
@@ -964,7 +962,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/Release' }
-            examples: { fixed: { $ref: '#/components/examples/exRelease' } }
+            example: { $ref: '#/components/examples/exRelease/value' }
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -973,13 +971,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Release' }
-              examples: { fixed: { $ref: '#/components/examples/exRelease' } }
+              example: { $ref: '#/components/examples/exRelease/value' }
         '200':
           description: OK (idempotent replay)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Release' }
-              examples: { fixed: { $ref: '#/components/examples/exRelease' } }
+              example: { $ref: '#/components/examples/exRelease/value' }
         '400':
           description: Bad Request
           content:
@@ -1003,7 +1001,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Release' }
-              examples: { fixed: { $ref: '#/components/examples/exRelease' } }
+              example: { $ref: '#/components/examples/exRelease/value' }
         '401': { $ref: '#/components/responses/Unauthorized401' }
         '404': { $ref: '#/components/responses/NotFound404' }
   /v1/deployments:
@@ -1014,7 +1012,7 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/Deployment' }
-            examples: { fixed: { $ref: '#/components/examples/exDeployment' } }
+            example: { $ref: '#/components/examples/exDeployment/value' }
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -1023,13 +1021,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Deployment' }
-              examples: { fixed: { $ref: '#/components/examples/exDeployment' } }
+              example: { $ref: '#/components/examples/exDeployment/value' }
         '200':
           description: OK (idempotent replay)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Deployment' }
-              examples: { fixed: { $ref: '#/components/examples/exDeployment' } }
+              example: { $ref: '#/components/examples/exDeployment/value' }
         '400':
           description: Bad Request
           content:

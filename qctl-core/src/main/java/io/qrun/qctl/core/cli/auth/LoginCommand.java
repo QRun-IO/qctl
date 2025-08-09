@@ -34,7 +34,7 @@ public class LoginCommand implements Runnable
       {
          if(apiKey != null && !apiKey.isBlank())
          {
-            new TokenStore(SystemPaths.configDir()).writeApiKey(apiKey.trim());
+            createStore().writeApiKey(apiKey.trim());
             System.out.println("auth login: API key stored (mock/testing)");
             return;
          }
@@ -45,5 +45,17 @@ public class LoginCommand implements Runnable
          System.err.println("auth login error: " + e.getMessage());
          System.exit(1);
       }
+   }
+
+
+
+   /***************************************************************************
+    * Creates a TokenStore. Overridable in tests to inject a temporary store.
+    *
+    * @return token store instance rooted at the user config directory
+    ***************************************************************************/
+   protected TokenStore createStore()
+   {
+      return new TokenStore(SystemPaths.configDir());
    }
 }

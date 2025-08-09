@@ -32,7 +32,11 @@ public class ResolveCommand implements Runnable
 
 
    /***************************************************************************
-    **
+    * Returns a concise summary for hermetic install planning.
+    *
+    * @param count number of packages
+    * @return human-readable summary
+    * @since 0.1.0
     ***************************************************************************/
    static String summary(int count)
    {

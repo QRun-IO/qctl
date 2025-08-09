@@ -28,11 +28,11 @@ import picocli.CommandLine.Option;
 @Command(name = "prune", description = "Prune cache to target size")
 public class CachePruneCommand implements Runnable
 {
-   private static final long BYTES_PER_KB = 1024L;
-   private static final long BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
-   private static final long BYTES_PER_GB = BYTES_PER_MB * BYTES_PER_KB;
+   private static final long               BYTES_PER_KB = 1024L;
+   private static final long               BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
+   private static final long               BYTES_PER_GB = BYTES_PER_MB * BYTES_PER_KB;
    // For tests, allow overriding cache root
-   final java.nio.file.Path rootOverride;
+   final                java.nio.file.Path rootOverride;
    @Option(names = "--max-size", required = true, description = "Target size, e.g., 500MB")
    String maxSize;
 
@@ -57,7 +57,9 @@ public class CachePruneCommand implements Runnable
    /**
     * Parses a human-readable size like 500MB, 2GB, 42B (or plain number = bytes).
     *
-    * @param s size string
+    * @param s
+    *    size string
+    *
     * @return size in bytes
     */
    static long parseSize(String s)
@@ -125,22 +127,31 @@ public class CachePruneCommand implements Runnable
    public void run()
    {
       long target = parseSize(maxSize);
-      Path root   = rootOverride != null ? rootOverride : io.qrun.qctl.core.sys.SystemPaths.cacheDir();
+      Path root   = (rootOverride != null) ? rootOverride : io.qrun.qctl.core.sys.SystemPaths.cacheDir();
       try
       {
-         long total =
-            Files.walk(root).filter(Files::isRegularFile).mapToLong(CachePruneCommand::size).sum();
+         // Close the first walk() stream properly
+         long total;
+         try(Stream<Path> paths = Files.walk(root))
+         {
+            total = paths
+               .filter(Files::isRegularFile)
+               .mapToLong(CachePruneCommand::size)
+               .sum();
+         }
+
          if(total <= target)
          {
             System.out.println("No prune needed.");
             return;
          }
+
          // naive LRU: sort by lastModified
-         try(Stream<Path> s =
-            Files.walk(root)
-               .filter(Files::isRegularFile)
-               .sorted(Comparator.comparingLong(CachePruneCommand::lastModified)))
+         try(Stream<Path> s = Files.walk(root)
+            .filter(Files::isRegularFile)
+            .sorted(Comparator.comparingLong(CachePruneCommand::lastModified)))
          {
+
             for(Path p : (Iterable<Path>) s::iterator)
             {
                long sz = size(p);
@@ -158,6 +169,7 @@ public class CachePruneCommand implements Runnable
                }
             }
          }
+
          System.out.println("Pruned to <= target.");
       }
       catch(IOException e)

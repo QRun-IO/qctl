@@ -19,6 +19,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProblemDetail
 {
+   /***************************************************************************
+    * RFC 7807 Problem Details structure used for API errors.
+    *
+    * Why: Provide a consistent, typed error envelope across endpoints and clients.
+    * @since 0.1.0
+    ***************************************************************************/
    public String   type;
    public String   title;
    public Integer  status;

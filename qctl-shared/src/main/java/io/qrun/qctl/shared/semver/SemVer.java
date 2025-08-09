@@ -20,6 +20,12 @@ import java.util.regex.Pattern;
 
 public final class SemVer implements Comparable<SemVer>
 {
+   /***************************************************************************
+    * Minimal semantic version implementation for ordering and formatting.
+    *
+    * Why: Avoid extra dependencies while supporting basic SemVer needs.
+    * @since 0.1.0
+    ***************************************************************************/
    private static final Pattern P = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)(?:[-+].*)?$");
 
    public final int major;

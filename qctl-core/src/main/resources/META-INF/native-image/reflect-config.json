@@ -1,0 +1,103 @@
+[
+  {
+    "name": "ch.qos.logback.core.ConsoleAppender",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []},
+      {"name": "setTarget", "parameterTypes": ["java.lang.String"]}
+    ]
+  },
+  {
+    "name": "ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []}
+    ]
+  },
+  {
+    "name": "ch.qos.logback.classic.PatternLayout",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []},
+      {"name": "setPattern", "parameterTypes": ["java.lang.String"]}
+    ]
+  },
+  {
+    "name": "ch.qos.logback.classic.Logger",
+    "methods": [
+      {"name": "setLevel", "parameterTypes": ["ch.qos.logback.classic.Level"]}
+    ]
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.RollingFileAppender",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []},
+      {"name": "setFile", "parameterTypes": ["java.lang.String"]},
+      {"name": "setRollingPolicy", "parameterTypes": ["ch.qos.logback.core.rolling.RollingPolicy"]}
+    ]
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.TimeBasedRollingPolicy",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []},
+      {"name": "setFileNamePattern", "parameterTypes": ["java.lang.String"]},
+      {"name": "setMaxHistory", "parameterTypes": ["int"]}
+    ]
+  },
+  {
+    "name": "picocli.CommandLine",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "picocli.CommandLine$Model$CommandSpec",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.qrun.qctl.core.Main",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.qrun.qctl.core.cli.AuthCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.qrun.qctl.core.cli.CacheCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "com.fasterxml.jackson.databind.ObjectMapper",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.fasterxml.jackson.databind.JsonNode",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  }
+]

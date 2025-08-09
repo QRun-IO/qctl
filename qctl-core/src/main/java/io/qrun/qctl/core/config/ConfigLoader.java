@@ -30,6 +30,9 @@ import com.networknt.schema.ValidationMessage;
 
 /**
  * Loads qctl configuration from defaults, project file, and environment, then validates it.
+ *
+ * Why: Provides a single entrypoint for deterministic config precedence and schema validation.
+ * @since 0.1.0
  */
 public final class ConfigLoader
 {

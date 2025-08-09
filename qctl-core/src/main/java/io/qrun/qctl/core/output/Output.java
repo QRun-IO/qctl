@@ -19,6 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Output helpers for writing text and JSON to stdout.
+ *
+ * Why: Centralizes consistent stdout rendering (text/json) across commands.
+ * @since 0.1.0
  */
 public final class Output
 {
@@ -31,6 +34,7 @@ public final class Output
     *
     * @param out destination stream
     * @param s text to print
+    * @since 0.1.0
     */
    public static void text(PrintStream out, String s)
    {
@@ -44,6 +48,7 @@ public final class Output
     *
     * @param out destination stream
     * @param obj object to serialize
+    * @since 0.1.0
     */
    public static void json(PrintStream out, Object obj)
    {

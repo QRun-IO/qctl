@@ -21,6 +21,9 @@ import picocli.CommandLine.Command;
 
 /**
  * Lists cache entries (limited depth and count) for quick inspection.
+ *
+ * Why: Provide a fast way to inspect cache contents without full traversal.
+ * @since 0.1.0
  */
 @Command(name = "ls", description = "List cache entries")
 public class CacheLsCommand implements Runnable

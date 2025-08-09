@@ -22,6 +22,12 @@ import picocli.CommandLine.Command;
    mixinStandardHelpOptions = true)
 public class QstudioCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for qStudio planning commands.
+    *
+    * Why: Groups offline planning and ledger operations in V1.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

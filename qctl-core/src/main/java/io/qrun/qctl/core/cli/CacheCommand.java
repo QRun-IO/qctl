@@ -27,6 +27,12 @@ import picocli.CommandLine.Command;
    })
 public class CacheCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for the cache command group.
+    *
+    * Why: Provides a namespace for cache-related maintenance operations.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

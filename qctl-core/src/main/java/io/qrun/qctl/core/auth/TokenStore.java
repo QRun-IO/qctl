@@ -21,6 +21,9 @@ import java.util.Optional;
 
 /**
  * Minimal token store using a file in the configuration directory.
+ *
+ * Why: Provide a simple, testable storage mechanism for API tokens in V1.
+ * @since 0.1.0
  */
 public final class TokenStore
 {

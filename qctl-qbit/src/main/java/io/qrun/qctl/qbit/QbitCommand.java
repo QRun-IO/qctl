@@ -23,6 +23,12 @@ import picocli.CommandLine.Command;
    subcommands = { ResolveCommand.class })
 public class QbitCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for qBit package operations.
+    *
+    * Why: Groups resolving and vendor management flows.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

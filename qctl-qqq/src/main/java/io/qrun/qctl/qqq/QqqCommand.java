@@ -19,6 +19,12 @@ import picocli.CommandLine.Command;
 @Command(name = "qqq", description = "Scaffolding commands", mixinStandardHelpOptions = true)
 public class QqqCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for scaffolding commands.
+    *
+    * Why: Groups template-driven project generation operations.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

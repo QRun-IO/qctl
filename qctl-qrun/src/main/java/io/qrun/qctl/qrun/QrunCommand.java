@@ -23,6 +23,12 @@ import picocli.CommandLine.Command;
    subcommands = { StatusCommand.class, PackageCommand.class, PublishCommand.class })
 public class QrunCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for the qrun command group.
+    *
+    * Why: Groups lifecycle operations like status, package, publish.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

@@ -27,6 +27,12 @@ import picocli.CommandLine.Command;
    })
 public class AuthCommand implements Runnable
 {
+   /***************************************************************************
+    * Entry for the auth command group.
+    *
+    * Why: Groups authentication flows and token lifecycle management.
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

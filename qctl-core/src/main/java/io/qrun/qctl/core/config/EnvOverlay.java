@@ -22,6 +22,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Utilities to transform environment variables into a JSON tree.
+ *
+ * Why: Convert QCTL_* variables into structured config overlay for merging.
+ * @since 0.1.0
  */
 final class EnvOverlay
 {
@@ -33,6 +36,7 @@ final class EnvOverlay
     *
     * @param env environment map
     * @return JSON node representing the overlay
+    * @since 0.1.0
     */
    static JsonNode toNode(Map<String, String> env)
    {

@@ -22,6 +22,11 @@ import picocli.CommandLine.Command;
 @Command(name = "whoami", description = "Show current identity (V1 stub)")
 public class WhoamiCommand implements Runnable
 {
+   /***************************************************************************
+    * Prints whether an API key is present in the TokenStore.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public void run()
    {

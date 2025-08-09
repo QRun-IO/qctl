@@ -42,7 +42,14 @@ public class StatusCommand implements Runnable
 
 
    /***************************************************************************
-    **
+    * Renders status as text or JSON, including app and env context.
+    *
+    * @param status payload from the API
+    * @param app application name
+    * @param env environment name
+    * @param outputFormat text or json
+    * @param out destination stream
+    * @since 0.1.0
     ***************************************************************************/
    static void renderStatus(
       Map<String, Object> status, String app, String env, String outputFormat, PrintStream out)
@@ -112,7 +119,9 @@ public class StatusCommand implements Runnable
 
 
    /***************************************************************************
-    **
+    * Resolve the desired output format from Picocli parse result, defaults to text.
+    *
+    * @since 0.1.0
     ***************************************************************************/
    private String resolveOutputFormat()
    {

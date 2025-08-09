@@ -35,7 +35,9 @@ public class PublishCommand implements Runnable
 
 
    /***************************************************************************
-    **
+    * Executes a mock publish flow (artifact + release) honoring Idempotency-Key.
+    *
+    * @since 0.1.0
     ***************************************************************************/
    @SuppressWarnings("checkstyle:MagicNumber")
    @Override
@@ -111,7 +113,11 @@ public class PublishCommand implements Runnable
 
    // Visible for tests
    /***************************************************************************
-    **
+    * Creates an ApiClient with the given header provider (overridden in tests).
+    *
+    * @param headerProvider callback to set headers
+    * @return ApiClient instance
+    * @since 0.1.0
     ***************************************************************************/
    @SuppressWarnings("checkstyle:MagicNumber")
    protected ApiClient createClient(ApiClient.HeaderProvider headerProvider)

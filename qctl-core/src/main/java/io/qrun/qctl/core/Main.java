@@ -26,6 +26,9 @@ import picocli.CommandLine.Spec;
 
 /**
  * qctl entrypoint: registers subcommands via SPI and executes.
+ *
+ * Why: Centralized bootstrap that discovers plugins and wires the CLI surfaces.
+ * @since 0.1.0
  */
 @Command(
    name = "qctl",
@@ -66,19 +69,36 @@ public class Main implements Runnable
 
 
 
-   /** Launches the CLI. */
+   /**
+    * Launches the CLI process and executes the selected command.
+    *
+    * @param args command-line arguments
+    * @since 0.1.0
+    */
    public static void main(String[] args)
    {
       CommandLine cmd = new CommandLine(new Main());
       // Discover external subcommands via SPI and register dynamically
-      java.util.ServiceLoader<io.qrun.qctl.shared.spi.CommandPlugin> loader =
-         java.util.ServiceLoader.load(io.qrun.qctl.shared.spi.CommandPlugin.class);
-      for(io.qrun.qctl.shared.spi.CommandPlugin plugin : loader)
+      try
       {
-         Object      command = plugin.getCommand();
-         CommandLine sub     = new CommandLine(command);
-         String      name    = sub.getCommandSpec().name();
-         cmd.addSubcommand(name, command);
+         java.util.ServiceLoader<io.qrun.qctl.shared.spi.CommandPlugin> loader =
+            java.util.ServiceLoader.load(io.qrun.qctl.shared.spi.CommandPlugin.class);
+         for(io.qrun.qctl.shared.spi.CommandPlugin plugin : loader)
+         {
+            Object      command = plugin.getCommand();
+            CommandLine sub     = new CommandLine(command);
+            String      name    = sub.getCommandSpec().name();
+            cmd.addSubcommand(name, command);
+         }
+      }
+      catch(java.util.ServiceConfigurationError | NoClassDefFoundError e)
+      {
+         // If some providers are missing (e.g., native image without module classes),
+         // keep core commands working and optionally log when --debug is set.
+         if(Boolean.getBoolean("qctl.debug") || java.util.Arrays.asList(args).contains("--debug"))
+         {
+            System.err.println("warning: some command plugins could not be loaded: " + e.getMessage());
+         }
       }
       int code = cmd.execute(args);
       System.exit(code);
@@ -86,7 +106,11 @@ public class Main implements Runnable
 
 
 
-   /** Prints a hint when no subcommand is provided. */
+   /**
+    * Prints a hint when no subcommand is provided and validates base config.
+    *
+    * @since 0.1.0
+    */
    @Override
    public void run()
    {

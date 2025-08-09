@@ -26,7 +26,7 @@ public class LogoutCommand implements Runnable
    {
       try
       {
-         new TokenStore(SystemPaths.configDir()).clear();
+         createStore().clear();
          System.out.println("auth logout: removed stored token");
       }
       catch(Exception e)
@@ -34,5 +34,17 @@ public class LogoutCommand implements Runnable
          System.err.println("auth logout error: " + e.getMessage());
          System.exit(1);
       }
+   }
+
+
+
+   /***************************************************************************
+    * Creates a TokenStore. Overridable in tests to inject a temporary store.
+    *
+    * @return token store instance rooted at the user config directory
+    ***************************************************************************/
+   protected TokenStore createStore()
+   {
+      return new TokenStore(SystemPaths.configDir());
    }
 }

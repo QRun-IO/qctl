@@ -27,6 +27,9 @@ import io.qrun.qctl.shared.api.ProblemDetail;
 
 /**
  * Minimal HTTP client wrapper with JSON serialization, retries, and RFC7807 mapping.
+ *
+ * Why: Centralizes API calls with consistent error→exit code mapping for the CLI.
+ * @since 0.1.0
  */
 public class ApiClient
 {

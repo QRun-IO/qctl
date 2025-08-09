@@ -21,6 +21,9 @@ import picocli.CommandLine.Option;
 
 /**
  * Implements cache clean operations.
+ *
+ * Why: Allows users to clear cache artifacts safely (opt-in with --all).
+ * @since 0.1.0
  */
 @Command(name = "clean", description = "Clean cache")
 public class CacheCleanCommand implements Runnable
@@ -52,6 +55,7 @@ public class CacheCleanCommand implements Runnable
                }
                catch(IOException expected)
                {
+                  // no-op, we just want to delete files and directories
                }
             });
          System.out.println("Cache cleared: " + root);

@@ -28,7 +28,9 @@ public final class LockfileIO
 
 
    /***************************************************************************
-    **
+    * Non-instantiable utility.
+    *
+    * @since 0.1.0
     ***************************************************************************/
    private LockfileIO()
    {
@@ -37,7 +39,11 @@ public final class LockfileIO
 
 
    /***************************************************************************
-    **
+    * Reads a lockfile from disk or returns an empty model if absent.
+    *
+    * @param path file path to read
+    * @return parsed lockfile (never null)
+    * @since 0.1.0
     ***************************************************************************/
    public static Lockfile read(Path path) throws IOException
    {
@@ -52,7 +58,11 @@ public final class LockfileIO
 
 
    /***************************************************************************
-    **
+    * Writes a lockfile atomically (tmp + move) to avoid partial writes.
+    *
+    * @param path target path
+    * @param lf   lockfile to serialize
+    * @since 0.1.0
     ***************************************************************************/
    public static void writeAtomic(Path path, Lockfile lf) throws IOException
    {

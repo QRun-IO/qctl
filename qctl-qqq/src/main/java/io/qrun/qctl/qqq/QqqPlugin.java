@@ -18,6 +18,11 @@ import io.qrun.qctl.shared.spi.CommandPlugin;
 
 public final class QqqPlugin implements CommandPlugin
 {
+   /***************************************************************************
+    * Provides the root qqq command for registration.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
    @Override
    public Object getCommand()
    {

@@ -26,6 +26,11 @@ import picocli.CommandLine.Command;
 @Command(name = "package", description = "Prepare dummy artifact manifest (mock V1)")
 public class PackageCommand implements Runnable
 {
+   /***************************************************************************
+    * Writes a deterministic artifact manifest to target/ for mock flows.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
    @SuppressWarnings("checkstyle:MagicNumber")
    @Override
    public void run()
@@ -39,7 +44,8 @@ public class PackageCommand implements Runnable
          m.put("kind", "oci");
          m.put("digest", "sha256:d34db33f");
          m.put("sizeBytes", 12345678);
-         m.put("createdAt", Instant.now().toString());
+         // Use fixed timestamp for deterministic tests per V1 fixtures
+         m.put("createdAt", "2025-01-15T12:00:00Z");
          String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(m);
          Files.writeString(manifest, json);
          Output.text(System.out, "wrote " + manifest);

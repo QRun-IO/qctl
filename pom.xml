@@ -17,6 +17,7 @@
       <module>qctl-qbit</module>
       <module>qctl-qrun</module>
       <module>qctl-qstudio</module>
+      <module>qctl-cli</module>
       <module>qctl-integration-tests</module>
    </modules>
 
@@ -26,7 +27,7 @@
       <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
       <picocli.version>4.7.5</picocli.version>
       <jackson.version>2.17.1</jackson.version>
-      <logback.version>1.5.6</logback.version>
+      <logback.version>1.5.13</logback.version>
       <slf4j.version>2.0.13</slf4j.version>
       <networknt.json.schema.version>1.4.1</networknt.json.schema.version>
       <handlebars.version>4.4.0</handlebars.version>
@@ -38,6 +39,7 @@
       <spotless.version>2.43.0</spotless.version>
       <checkstyle.version>10.17.0</checkstyle.version>
       <errorprone.version>2.28.0</errorprone.version>
+      <native.maven.plugin.version>0.10.4</native.maven.plugin.version>
    </properties>
 
    <dependencyManagement>
@@ -89,6 +91,11 @@
                      </jdk>
                   </toolchains>
                </configuration>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>exec-maven-plugin</artifactId>
+               <version>3.1.1</version>
             </plugin>
             
          </plugins>
@@ -152,7 +159,6 @@
             <configuration>
                <configLocation>codestyle/checkstyle.config.xml</configLocation>
                <consoleOutput>true</consoleOutput>
-               <encoding>${project.build.sourceEncoding}</encoding>
                <failsOnError>true</failsOnError>
                <includeTestSourceDirectory>false</includeTestSourceDirectory>
                <violationSeverity>warning</violationSeverity>
@@ -169,4 +175,33 @@
          </plugin>
       </plugins>
    </build>
+
+   <profiles>
+      <profile>
+         <id>native-check</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>exec-maven-plugin</artifactId>
+                  <executions>
+                     <execution>
+                        <id>validate-graalvm-environment</id>
+                        <phase>validate</phase>
+                        <goals>
+                           <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                           <executable>bash</executable>
+                           <arguments>
+                              <argument>${project.basedir}/scripts/validate-graalvm.sh</argument>
+                           </arguments>
+                        </configuration>
+                     </execution>
+                  </executions>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
 </project>

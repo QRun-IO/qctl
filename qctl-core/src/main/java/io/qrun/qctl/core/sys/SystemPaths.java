@@ -20,11 +20,16 @@ import java.nio.file.Paths;
 
 /**
  * OS-specific configuration and cache directory helpers.
+ *
+ * Why: Provide predictable config/cache locations across platforms.
+ * @since 0.1.0
  */
 public final class SystemPaths
 {
    /***************************************************************************
-    **
+    * Non-instantiable utility class.
+    *
+    * @since 0.1.0
     ***************************************************************************/
    private SystemPaths()
    {
