@@ -1,6 +1,6 @@
-#Sat Aug 09 08:28:08 CDT 2025
-/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/api/ProblemDetail.java=1754746072966
-/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/semver/SemVer.java=1754746052268
-/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/spi/CommandPlugin.java=1754746060355
+#Sat Aug 09 12:42:48 CDT 2025
+/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/api/ProblemDetail.java=1754759979916
+/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/semver/SemVer.java=1754760034677
+/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/spi/CommandPlugin.java=1754760004852
 configuration*?=8D383B1F048C728BA2D61E9A8C55081C879054DE
-module-resource*?\:file\:/Users/james.maes/Git.Local/QRunIO/qctl/codestyle/license.txt=5C9CA1D2DFE58A4062A060088C4C5BED8A7F4AAA
+module-resource*?\:file\:/Users/james.maes/Git.Local/QRunIO/qctl/codestyle/license.txt=A4169002B003CC14C49045196CB72304F685D60C

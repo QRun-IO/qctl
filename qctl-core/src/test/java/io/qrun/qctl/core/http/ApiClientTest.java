@@ -8,7 +8,7 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
- */
+*/
 
 package io.qrun.qctl.core.http;
 
@@ -25,9 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
+/**
+ * Tests for {@link ApiClient} header injection and error mapping.
+ */
 class ApiClientTest
 {
 
+   /** Builds a JSON ProblemDetail string for the given HTTP status. */
    private static String problem(int status) throws Exception
    {
       ProblemDetail pd = new ProblemDetail();
@@ -41,6 +45,7 @@ class ApiClientTest
 
 
 
+   /** Ensures custom header provider is invoked and header is present. */
    @Test
    void header_provider_is_invoked() throws Exception
    {
@@ -61,6 +66,7 @@ class ApiClientTest
 
 
 
+   /** Verifies HTTP status codes map to expected exit codes. */
    @Test
    void error_mapping_status_codes() throws Exception
    {
@@ -77,6 +83,7 @@ class ApiClientTest
 
 
 
+   /** Helper asserting exit code mapping for a status. */
    private void assertExitForStatus(int status, int expectedExit) throws Exception
    {
       byte[]               body = problem(status).getBytes();

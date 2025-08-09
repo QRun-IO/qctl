@@ -8,7 +8,7 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
- */
+*/
 
 package io.qrun.qctl.core.cli.cache;
 
@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
+/**
+ * Tests for {@link CachePruneCommand} parsing and behavior.
+ */
 class CachePruneCommandTest
 {
 
+   /** Verifies unit parsing for KB/MB/GB/B and raw bytes. */
    @Test
    void parse_size_units()
    {
@@ -35,6 +39,7 @@ class CachePruneCommandTest
 
 
 
+   /** Ensures prune is a no-op if current size is already below the target. */
    @Test
    void prune_noop_when_total_below_target() throws Exception
    {
@@ -53,6 +58,7 @@ class CachePruneCommandTest
 
 
 
+   /** Invalid unit should cause {@link NumberFormatException}. */
    @Test
    void parse_size_invalid_throws_number_format()
    {
