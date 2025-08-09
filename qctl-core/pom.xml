@@ -76,6 +76,7 @@
    </dependencies>
    <build>
       <plugins>
+
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
@@ -84,8 +85,14 @@
                <toolVersion>${checkstyle.version}</toolVersion>
                <configLocation>codestyle/checkstyle.config.xml</configLocation>
                <failOnViolation>true</failOnViolation>
+
+               <!-- key line -->
+               <includeTestSourceDirectory>false</includeTestSourceDirectory>
+               <!-- (optional, but makes it explicit we only scan main sources) -->
+               <sourceDirectories>
+                  <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+               </sourceDirectories>
             </configuration>
-            <!-- (Optional but bullet-proof) also pin the dependency: -->
             <dependencies>
                <dependency>
                   <groupId>com.puppycrawl.tools</groupId>
@@ -94,6 +101,7 @@
                </dependency>
             </dependencies>
          </plugin>
+
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>

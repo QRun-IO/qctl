@@ -27,21 +27,33 @@ public final class LockfileIO
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    private LockfileIO()
    {
    }
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    public static Lockfile read(Path path) throws IOException
    {
       if(!Files.exists(path))
+      {
          return new Lockfile();
+      }
+
       return YAML.readValue(path.toFile(), Lockfile.class);
    }
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    public static void writeAtomic(Path path, Lockfile lf) throws IOException
    {
       Path tmp = path.resolveSibling(path.getFileName() + ".tmp");

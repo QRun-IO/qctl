@@ -26,8 +26,11 @@ final class JsonMerge
     * Deep-merges {@code override} into {@code base}. Objects are merged recursively; other types
     * replace the base value.
     *
-    * @param base base JSON (may be null)
-    * @param override override JSON
+    * @param base
+    *    base JSON (may be null)
+    * @param override
+    *    override JSON
+    *
     * @return merged JSON node
     */
    static JsonNode merge(JsonNode base, JsonNode override)
@@ -43,7 +46,8 @@ final class JsonMerge
       if(base.isObject() && override.isObject())
       {
          ObjectNode result = base.deepCopy();
-         override.fields().forEachRemaining(e -> {
+         override.fields().forEachRemaining(e ->
+         {
             JsonNode existing = result.get(e.getKey());
             JsonNode merged   = merge(existing, e.getValue());
             result.set(e.getKey(), merged);

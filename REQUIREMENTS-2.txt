@@ -74,10 +74,12 @@ Security
 
 Developer Experience & IntelliJ Standards
 	•	Maven Wrapper + Java Toolchains (latest LTS Temurin); reproducible builds.
-	•	Spotless + Google Java Format; Checkstyle; Error Prone; Nullness annotations; Qodana.
+	•	Spotless + our own custom Java Format; Checkstyle; Error Prone; Nullness annotations; Qodana. (find it in the checkstyle_config.xml file)
 	•	Tests: JUnit 5, AssertJ, Mockito, Testcontainers, golden CLI tests.
 	•	IntelliJ: .editorconfig, .run/ configs, committed code style/inspections.
 	•	GraalVM reflection configs committed; debug profile.
+	•	All classes, packages, and methods need full flowerbox style javadoc comments on them. 
+   
 
 Configuration & Default qctl.yaml Schema
 	•	Precedence, paths per OS, env var mapping, embedded JSON Schema, sample YAML.
@@ -221,6 +223,8 @@ Non-Negotiable Rules
 	•	Output the design doc, domain model, OpenAPI spec with fixtures, schemas, and build checklist only.
 	•	Prefer concrete, testable decisions with reasons.
 	•	Use clear Markdown with headings, bullets, and short examples.
+	•	Coding style matching our checkstyle definition and all classes and methods having full good (for other developers) javadocs in flower box format 
+
 
 ⸻
 
@@ -239,5 +243,7 @@ qctl qrun publish --env dev
 
 # qStudio
 qctl qstudio plan --rules rules.yaml --out plan.md
+
+
 
 

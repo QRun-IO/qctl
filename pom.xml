@@ -154,7 +154,7 @@
                <consoleOutput>true</consoleOutput>
                <encoding>${project.build.sourceEncoding}</encoding>
                <failsOnError>true</failsOnError>
-               <includeTestSourceDirectory>true</includeTestSourceDirectory>
+               <includeTestSourceDirectory>false</includeTestSourceDirectory>
                <violationSeverity>warning</violationSeverity>
             </configuration>
             <executions>

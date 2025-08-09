@@ -14,6 +14,7 @@ package io.qrun.qctl.core.http;
 
 
 import javax.net.ssl.SSLSession;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -30,6 +31,22 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ApiClientTest
 {
+   // HTTP status codes - using JDK constants where available
+   private static final int HTTP_OK                   = HttpURLConnection.HTTP_OK;                    // 200
+   private static final int HTTP_BAD_REQUEST          = HttpURLConnection.HTTP_BAD_REQUEST;           // 400
+   private static final int HTTP_UNAUTHORIZED         = HttpURLConnection.HTTP_UNAUTHORIZED;          // 401
+   private static final int HTTP_FORBIDDEN            = HttpURLConnection.HTTP_FORBIDDEN;             // 403
+   private static final int HTTP_NOT_FOUND            = HttpURLConnection.HTTP_NOT_FOUND;             // 404
+   private static final int HTTP_CONFLICT             = HttpURLConnection.HTTP_CONFLICT;              // 409
+   private static final int HTTP_PRECONDITION_FAILED  = HttpURLConnection.HTTP_PRECON_FAILED;         // 412
+   private static final int HTTP_UNPROCESSABLE_ENTITY = 422; // Not defined in HttpURLConnection
+   private static final int HTTP_TOO_MANY_REQUESTS    = 429; // Not defined in HttpURLConnection
+   private static final int HTTP_SERVICE_UNAVAILABLE  = HttpURLConnection.HTTP_UNAVAILABLE;           // 503
+
+   // Test timeout constant
+   private static final Duration TEST_TIMEOUT = Duration.ofSeconds(1);
+
+
 
    /** Builds a JSON ProblemDetail string for the given HTTP status. */
    private static String problem(int status) throws Exception
@@ -49,9 +66,9 @@ class ApiClientTest
    @Test
    void header_provider_is_invoked() throws Exception
    {
-      CapturingClient client = new CapturingClient(200, "{}");
+      CapturingClient client = new CapturingClient(HTTP_OK, "{}");
       ApiClient api =
-         new ApiClient(Duration.ofSeconds(1), b -> b.header("X-Custom", "abc"))
+         new ApiClient(TEST_TIMEOUT, b -> b.header("X-Custom", "abc"))
          {
             @Override
             protected HttpResponse<byte[]> sendOnce(HttpRequest req)
@@ -70,15 +87,15 @@ class ApiClientTest
    @Test
    void error_mapping_status_codes() throws Exception
    {
-      assertExitForStatus(401, 4);
-      assertExitForStatus(403, 4);
-      assertExitForStatus(404, 5);
-      assertExitForStatus(400, 6);
-      assertExitForStatus(422, 6);
-      assertExitForStatus(409, 8);
-      assertExitForStatus(412, 8);
-      assertExitForStatus(429, 3);
-      assertExitForStatus(503, 3);
+      assertExitForStatus(HTTP_UNAUTHORIZED, ApiClient.exitCodeForStatus(HTTP_UNAUTHORIZED));
+      assertExitForStatus(HTTP_FORBIDDEN, ApiClient.exitCodeForStatus(HTTP_FORBIDDEN));
+      assertExitForStatus(HTTP_NOT_FOUND, ApiClient.exitCodeForStatus(HTTP_NOT_FOUND));
+      assertExitForStatus(HTTP_BAD_REQUEST, ApiClient.exitCodeForStatus(HTTP_BAD_REQUEST));
+      assertExitForStatus(HTTP_UNPROCESSABLE_ENTITY, ApiClient.exitCodeForStatus(HTTP_UNPROCESSABLE_ENTITY));
+      assertExitForStatus(HTTP_CONFLICT, ApiClient.exitCodeForStatus(HTTP_CONFLICT));
+      assertExitForStatus(HTTP_PRECONDITION_FAILED, ApiClient.exitCodeForStatus(HTTP_PRECONDITION_FAILED));
+      assertExitForStatus(HTTP_TOO_MANY_REQUESTS, ApiClient.exitCodeForStatus(HTTP_TOO_MANY_REQUESTS));
+      assertExitForStatus(HTTP_SERVICE_UNAVAILABLE, ApiClient.exitCodeForStatus(HTTP_SERVICE_UNAVAILABLE));
    }
 
 
@@ -89,8 +106,7 @@ class ApiClientTest
       byte[]               body = problem(status).getBytes();
       HttpResponse<byte[]> resp = new SimpleResponse(status, body);
       ApiClient client =
-         new ApiClient(Duration.ofSeconds(1), b -> {
-         })
+         new ApiClient(TEST_TIMEOUT, b -> {})
          {
             @Override
             protected HttpResponse<byte[]> sendOnce(HttpRequest req)
@@ -106,6 +122,9 @@ class ApiClientTest
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    private static final class SimpleResponse implements HttpResponse<byte[]>
    {
       private final int    status;
@@ -113,6 +132,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       SimpleResponse(int status, byte[] body)
       {
          this.status = status;
@@ -121,6 +143,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public int statusCode()
       {
@@ -129,6 +154,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public HttpRequest request()
       {
@@ -137,6 +165,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public Optional<HttpResponse<byte[]>> previousResponse()
       {
@@ -145,6 +176,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public java.net.http.HttpHeaders headers()
       {
@@ -153,6 +187,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public byte[] body()
       {
@@ -161,6 +198,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public Optional<SSLSession> sslSession()
       {
@@ -169,6 +209,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public URI uri()
       {
@@ -177,6 +220,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       @Override
       public java.net.http.HttpClient.Version version()
       {
@@ -193,6 +239,9 @@ class ApiClientTest
 
 
 
+      /***************************************************************************
+       **
+       ***************************************************************************/
       CapturingClient(int status, String body)
       {
          this.response = new SimpleResponse(status, body.getBytes());

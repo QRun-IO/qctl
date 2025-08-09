@@ -44,16 +44,16 @@ public class CacheCleanCommand implements Runnable
       {
          java.nio.file.Files.walk(root)
             .sorted(java.util.Comparator.reverseOrder())
-            .forEach(
-               p -> {
-                  try
-                  {
-                     java.nio.file.Files.deleteIfExists(p);
-                  }
-                  catch(IOException expected)
-                  {
-                  }
-               });
+            .forEach(p ->
+            {
+               try
+               {
+                  java.nio.file.Files.deleteIfExists(p);
+               }
+               catch(IOException expected)
+               {
+               }
+            });
          System.out.println("Cache cleared: " + root);
       }
       catch(IOException e)

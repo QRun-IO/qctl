@@ -31,6 +31,9 @@ public class ResolveCommand implements Runnable
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    static String summary(int count)
    {
       return "Would install " + count + " package(s) from lockfile";

@@ -31,9 +31,9 @@
 
 ### CLI UX & Commands
 
-- **Binary**: `qctl` with subcommands: `qqq`, `qbit`, `qrun`, `qstudio`, `auth`, `cache`
-- **Global flags**: `--config`, `--profile`, `--env`, `--verbose`, `--debug`, `--color <auto|always|never>`, `--output <text|json>`, `--yes`, `--dry-run`, `--timeout`, `--log.level`, `--offline`, `--hermetic`, `--telemetry.enabled`, `--version`, `--help`
-   - `--telemetry.enabled` overrides `telemetry.enabled` in config when provided.
+ - **Binary**: `qctl` with subcommands: `qqq`, `qbit`, `qrun`, `qstudio`, `auth`, `cache`
+ - **Global flags**: `--config`, `--profile`, `--env`, `--verbose`, `--debug`, `--color <auto|always|never>`, `--output <text|json>`, `--yes`, `--dry-run`, `--timeout`, `--log.level`, `--version`, `--help`
+ - **Mode flags**: `--offline`, `--hermetic` (see Offline mode). Telemetry opt-in: `--telemetry.enabled` (overrides `telemetry.enabled` in config when provided).
 - **Exit codes**:
 
 | Exit Code                                    | Meaning                               | Typical HTTP Status Codes                                                 |
@@ -48,7 +48,7 @@
 | 7                                            | Integrity/signature verification fail | 409, 412, custom integrity errors                                         |
 | 8                                            | Conflict/state error                  | 409                                                                       |
 | 9                                            | Cancelled by user                     | N/A (CLI-level signal)                                                    |
- - **Completion/man**: `qctl completion <bash | zsh                                   | fish                                                                      |pwsh>`, `qctl man`
+- **Completion/man**: `qctl completion <bash|zsh|fish|pwsh>`, `qctl man`
 
 - **Examples**:
    - qqq: `qctl qqq new my-app --template web-basic --non-interactive`
@@ -146,9 +146,10 @@
 ### Developer Experience & IntelliJ Standards
 
 - Maven Wrapper + Java Toolchains (latest LTS Temurin); reproducible builds (maven-enforcer)
-- Spotless + Google Java Format; Checkstyle; Error Prone; Nullness annotations; Qodana in CI
+- Spotless + our custom Java Format; Checkstyle (see `codestyle/checkstyle.config.xml`); Error Prone; Nullness annotations; Qodana in CI
 - Tests: JUnit 5, AssertJ, Mockito, Testcontainers; golden CLI tests
 - GraalVM reflection configs committed; debug profile
+- All classes, packages, and methods must include full flowerbox-style Javadoc comments.
 
 ### Configuration & Default qctl.yaml Schema
 
@@ -1233,7 +1234,7 @@ paths:
 
 - Use Prism to mock directly from the spec:
    - Install: `npm i -g @stoplight/prism-cli`
-   - Run: `prism mock DESIGN-2.md#openapi` (or extract the YAML to `openapi.yaml` and run `prism mock openapi.yaml`)
+   - Run (static, deterministic examples): `prism mock --dynamic false DESIGN-2.md#openapi` (or extract the YAML to `openapi.yaml` and run `prism mock --dynamic false openapi.yaml`)
 - Or generate a Spring server stub:
    - `openapi-generator generate -i openapi.yaml -g spring -o mock-server`
    - Run the stub and serve fixed examples by default

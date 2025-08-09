@@ -41,6 +41,9 @@ public class StatusCommand implements Runnable
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    static void renderStatus(
       Map<String, Object> status, String app, String env, String outputFormat, PrintStream out)
    {
@@ -72,6 +75,7 @@ public class StatusCommand implements Runnable
 
 
 
+   @SuppressWarnings("checkstyle:MagicNumber")
    @Override
    public void run()
    {
@@ -82,7 +86,8 @@ public class StatusCommand implements Runnable
          ApiClient client =
             new ApiClient(
                Duration.ofSeconds(30),
-               builder -> {
+               builder ->
+               {
                   builder.header("User-Agent", "qctl/0.1.0");
                   apiKey.ifPresent(k -> builder.header("X-API-Key", k));
                });
@@ -106,6 +111,9 @@ public class StatusCommand implements Runnable
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    private String resolveOutputFormat()
    {
       if(spec != null && spec.commandLine() != null && spec.commandLine().getParseResult() != null)

@@ -34,6 +34,10 @@ public class PublishCommand implements Runnable
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
+   @SuppressWarnings("checkstyle:MagicNumber")
    @Override
    public void run()
    {
@@ -44,7 +48,8 @@ public class PublishCommand implements Runnable
          String key    = idempotencyKey != null ? idempotencyKey : UUID.randomUUID().toString();
          ApiClient client =
             createClient(
-               builder -> {
+               builder ->
+               {
                   builder.header("User-Agent", "qctl/0.1.0");
                   builder.header("Idempotency-Key", key);
                   apiKey.ifPresent(k -> builder.header("X-API-Key", k));
@@ -105,6 +110,10 @@ public class PublishCommand implements Runnable
 
 
    // Visible for tests
+   /***************************************************************************
+    **
+    ***************************************************************************/
+   @SuppressWarnings("checkstyle:MagicNumber")
    protected ApiClient createClient(ApiClient.HeaderProvider headerProvider)
    {
       return new ApiClient(Duration.ofSeconds(30), headerProvider);

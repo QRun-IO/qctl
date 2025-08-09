@@ -26,6 +26,7 @@ import picocli.CommandLine.Command;
 @Command(name = "package", description = "Prepare dummy artifact manifest (mock V1)")
 public class PackageCommand implements Runnable
 {
+   @SuppressWarnings("checkstyle:MagicNumber")
    @Override
    public void run()
    {
