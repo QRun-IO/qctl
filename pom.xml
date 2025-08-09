@@ -115,11 +115,30 @@
             <licenseHeader>
               <file>${maven.multiModuleProjectDirectory}/codestyle/license.txt</file>
             </licenseHeader>
-            <googleJavaFormat>
-              <version>1.17.0</version>
-            </googleJavaFormat>
             <removeUnusedImports/>
           </java>
+          <formats>
+            <format>
+              <includes>
+                <include>**/*.xml</include>
+              </includes>
+              <licenseHeader>
+                <file>${maven.multiModuleProjectDirectory}/codestyle/license_xml.txt</file>
+                <delimiter><![CDATA[(?s)\A\s*<]]></delimiter>
+              </licenseHeader>
+            </format>
+            <format>
+              <includes>
+                <include>**/*.properties</include>
+                <include>**/*.yml</include>
+                <include>**/*.yaml</include>
+              </includes>
+              <licenseHeader>
+                <file>${maven.multiModuleProjectDirectory}/codestyle/license_hash.txt</file>
+                <delimiter><![CDATA[(?s)\A]]></delimiter>
+              </licenseHeader>
+            </format>
+          </formats>
         </configuration>
         <executions>
           <execution>
