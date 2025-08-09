@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.cli.cache;
 
 
@@ -21,6 +22,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 
+/**
+ * Implements cache pruning to a target size using an oldest-first eviction.
+ */
 @Command(name = "prune", description = "Prune cache to target size")
 public class CachePruneCommand implements Runnable
 {
@@ -31,6 +35,7 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /** Default constructor. */
    public CachePruneCommand()
    {
       this.rootOverride = null;
@@ -38,6 +43,7 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /** Package-private constructor used in tests to override the cache root. */
    CachePruneCommand(java.nio.file.Path rootOverride)
    {
       this.rootOverride = rootOverride;
@@ -45,6 +51,12 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /**
+    * Parses a human-readable size like 500MB, 2GB, 42B (or plain number = bytes).
+    *
+    * @param s size string
+    * @return size in bytes
+    */
    static long parseSize(String s)
    {
       String t   = s.trim().toUpperCase();
@@ -75,13 +87,14 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /** Safely returns file size; returns 0 on error. */
    static long size(Path p)
    {
       try
       {
          return Files.size(p);
       }
-      catch(IOException e)
+      catch(IOException expected)
       {
          return 0L;
       }
@@ -89,13 +102,14 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /** Safely returns last-modified time millis; returns 0 on error. */
    static long lastModified(Path p)
    {
       try
       {
          return Files.getLastModifiedTime(p).toMillis();
       }
-      catch(IOException e)
+      catch(IOException expected)
       {
          return 0L;
       }
@@ -103,6 +117,7 @@ public class CachePruneCommand implements Runnable
 
 
 
+   /** Executes the prune operation. */
    @Override
    public void run()
    {
@@ -130,12 +145,14 @@ public class CachePruneCommand implements Runnable
                {
                   Files.deleteIfExists(p);
                }
-               catch(IOException ignored)
+               catch(IOException expected)
                {
                }
                total -= sz;
                if(total <= target)
+               {
                   break;
+               }
             }
          }
          System.out.println("Pruned to <= target.");

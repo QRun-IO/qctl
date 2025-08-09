@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.output;
 
 
@@ -16,12 +17,21 @@ import java.io.PrintStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
+/**
+ * Output helpers for writing text and JSON to stdout.
+ */
 public final class Output
 {
    private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
 
+   /**
+    * Writes a line of plain text to the given stream.
+    *
+    * @param out destination stream
+    * @param s text to print
+    */
    public static void text(PrintStream out, String s)
    {
       out.println(s);
@@ -29,6 +39,12 @@ public final class Output
 
 
 
+   /**
+    * Serializes the given object as JSON and writes it as a single line.
+    *
+    * @param out destination stream
+    * @param obj object to serialize
+    */
    public static void json(PrintStream out, Object obj)
    {
       try

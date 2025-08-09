@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <checkstyle version="10.17.0">
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/spi/CommandPlugin.java">
-<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/semver/SemVer.java">
-<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/api/ProblemDetail.java">
-<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 </checkstyle>

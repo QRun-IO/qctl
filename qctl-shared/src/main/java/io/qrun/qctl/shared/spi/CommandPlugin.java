@@ -8,14 +8,11 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
-*/
-
+ */
 package io.qrun.qctl.shared.spi;
 
 
-/**
- * Service-provider interface for dynamically contributed Picocli subcommands.
- */
+/** Service-provider interface for dynamically contributed Picocli subcommands. */
 public interface CommandPlugin
 {
    /**

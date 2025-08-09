@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.config;
 
 
@@ -19,15 +20,30 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
+/**
+ * Utilities to transform environment variables into a JSON tree.
+ */
 final class EnvOverlay
 {
+   /**
+    * Converts environment variables to a hierarchical {@link JsonNode} using the {@code QCTL_}
+    * prefix and underscores as path separators.
+    *
+    * <p>Example: {@code QCTL_QRUN_DEFAULTENV=stage} becomes JSON {@code {"qrun":{"defaultenv":"stage"}}}.
+    *
+    * @param env environment map
+    * @return JSON node representing the overlay
+    */
    static JsonNode toNode(Map<String, String> env)
    {
       ObjectNode root = JsonNodeFactory.instance.objectNode();
       for(Map.Entry<String, String> e : env.entrySet())
       {
          if(!e.getKey().startsWith("QCTL_"))
+         {
             continue;
+         }
+
          String[]   parts = e.getKey().substring(5).toLowerCase(Locale.ROOT).split("_");
          ObjectNode cur   = root;
          for(int i = 0; i < parts.length; i++)

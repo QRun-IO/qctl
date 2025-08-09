@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.cli.cache;
 
 
@@ -18,6 +19,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 
+/**
+ * Implements cache clean operations.
+ */
 @Command(name = "clean", description = "Clean cache")
 public class CacheCleanCommand implements Runnable
 {
@@ -26,6 +30,7 @@ public class CacheCleanCommand implements Runnable
 
 
 
+   /** Executes the clean operation. */
    @Override
    public void run()
    {
@@ -45,7 +50,7 @@ public class CacheCleanCommand implements Runnable
                   {
                      java.nio.file.Files.deleteIfExists(p);
                   }
-                  catch(IOException ignored)
+                  catch(IOException expected)
                   {
                   }
                });

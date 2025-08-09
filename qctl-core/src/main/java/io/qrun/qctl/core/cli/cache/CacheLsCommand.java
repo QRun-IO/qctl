@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.cli.cache;
 
 
@@ -18,9 +19,13 @@ import java.util.stream.Stream;
 import picocli.CommandLine.Command;
 
 
+/**
+ * Lists cache entries (limited depth and count) for quick inspection.
+ */
 @Command(name = "ls", description = "List cache entries")
 public class CacheLsCommand implements Runnable
 {
+   /** Executes the list operation. */
    @Override
    public void run()
    {

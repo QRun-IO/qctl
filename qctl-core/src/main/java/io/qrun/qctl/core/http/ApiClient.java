@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.http;
 
 
@@ -23,6 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qrun.qctl.shared.api.ProblemDetail;
 
 
+/**
+ * Minimal HTTP client wrapper with JSON serialization, retries, and RFC7807 mapping.
+ */
 public class ApiClient
 {
    private final HttpClient     client;
@@ -32,6 +36,7 @@ public class ApiClient
 
 
 
+   /** Creates a client with the given request timeout. */
    public ApiClient(Duration requestTimeout)
    {
       this(requestTimeout, builder -> {
@@ -40,6 +45,7 @@ public class ApiClient
 
 
 
+   /** Creates a client with timeout and a header provider hook. */
    public ApiClient(Duration requestTimeout, HeaderProvider headerProvider)
    {
       this(
@@ -51,6 +57,7 @@ public class ApiClient
 
 
    // Visible for tests
+   /** Visible for tests. */
    ApiClient(HttpClient client, Duration requestTimeout, HeaderProvider headerProvider)
    {
       this.client = client;
@@ -60,6 +67,7 @@ public class ApiClient
 
 
 
+   /** Maps HTTP status to CLI exit code per DESIGN-2. */
    public static int exitCodeForStatus(int sc)
    {
       if(sc == 401 || sc == 403)
@@ -77,6 +85,7 @@ public class ApiClient
 
 
 
+   /** Performs a GET and parses a JSON response into the given type. */
    public <T> T getJson(URI uri, Class<T> type)
       throws IOException, InterruptedException, ApiException
    {
@@ -92,6 +101,7 @@ public class ApiClient
 
 
 
+   /** Performs a POST with JSON body and parses a JSON response. */
    public <T> T postJson(URI uri, Object body, Class<T> type)
       throws IOException, InterruptedException, ApiException
    {
@@ -109,6 +119,7 @@ public class ApiClient
 
 
 
+   /** Sends a request with retry/backoff and maps errors to ApiException. */
    public <T> T send(HttpRequest req, Class<T> type)
       throws IOException, InterruptedException, ApiException
    {
@@ -156,6 +167,7 @@ public class ApiClient
 
 
    // For testability: single HTTP round-trip; override in tests
+   /** Single HTTP round-trip (overridable in tests). */
    protected HttpResponse<byte[]> sendOnce(HttpRequest req)
       throws IOException, InterruptedException
    {

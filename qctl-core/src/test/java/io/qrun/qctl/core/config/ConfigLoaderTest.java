@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.config;
 
 
@@ -21,8 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
+/***************************************************************************
+ **
+ ***************************************************************************/
 class ConfigLoaderTest
 {
+   /***************************************************************************
+    **
+    ***************************************************************************/
    @Test
    void loads_defaults_when_no_file() throws Exception
    {
@@ -33,6 +40,9 @@ class ConfigLoaderTest
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    @Test
    void validates_schema_and_throws_on_bad_fields() throws Exception
    {

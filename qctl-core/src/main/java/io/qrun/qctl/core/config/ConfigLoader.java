@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.config;
 
 
@@ -27,6 +28,9 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 
 
+/***************************************************************************
+ **
+ ***************************************************************************/
 public final class ConfigLoader
 {
    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
@@ -34,8 +38,10 @@ public final class ConfigLoader
 
 
 
-   public static JsonNode loadAndValidate(Path projectConfig, Map<String, String> env)
-      throws IOException
+   /***************************************************************************
+    **
+    ***************************************************************************/
+   public static JsonNode loadAndValidate(Path projectConfig, Map<String, String> env) throws IOException
    {
       JsonNode merged = mergeDefaults(projectConfig, env);
       validateAgainstSchema(merged);
@@ -44,8 +50,10 @@ public final class ConfigLoader
 
 
 
-   private static JsonNode mergeDefaults(Path projectConfig, Map<String, String> env)
-      throws IOException
+   /***************************************************************************
+    **
+    ***************************************************************************/
+   private static JsonNode mergeDefaults(Path projectConfig, Map<String, String> env) throws IOException
    {
       JsonNode defaults = JSON.readTree("{\"output\":\"text\"}");
       JsonNode file =
@@ -58,6 +66,9 @@ public final class ConfigLoader
 
 
 
+   /***************************************************************************
+    **
+    ***************************************************************************/
    private static void validateAgainstSchema(JsonNode node) throws IOException
    {
       try(InputStream in = ConfigLoader.class.getResourceAsStream("/schema/qctl-config-v1.json"))

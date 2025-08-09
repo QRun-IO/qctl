@@ -9,6 +9,7 @@
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
  */
+
 package io.qrun.qctl.core.sys;
 
 
@@ -17,6 +18,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
+/**
+ * OS-specific configuration and cache directory helpers.
+ */
 public final class SystemPaths
 {
    private SystemPaths()
@@ -25,6 +29,7 @@ public final class SystemPaths
 
 
 
+   /** Returns the user configuration directory for qctl. */
    public static Path configDir()
    {
       String os = System.getProperty("os.name").toLowerCase();
@@ -54,6 +59,7 @@ public final class SystemPaths
 
 
 
+   /** Returns the user cache directory for qctl. */
    public static Path cacheDir()
    {
       String os = System.getProperty("os.name").toLowerCase();
@@ -83,13 +89,14 @@ public final class SystemPaths
 
 
 
+   /** Ensures the given directory exists, creating it if needed. */
    public static Path ensureDir(Path p)
    {
       try
       {
          Files.createDirectories(p);
       }
-      catch(Exception ignored)
+      catch(Exception expected)
       {
       }
       return p;
