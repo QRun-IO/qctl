@@ -1,0 +1,105 @@
+[
+  {
+    "name" : "io.qrun.qctl.core.Main",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "debug" },
+      { "name" : "hermetic" },
+      { "name" : "offline" },
+      { "name" : "outputFormat" },
+      { "name" : "spec" },
+      { "name" : "telemetryEnabled" },
+      { "name" : "verbose" }
+    ]
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.AuthCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.CacheCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.auth.LoginCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "apiKey" }
+    ]
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.auth.LogoutCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.auth.WhoamiCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.cache.CacheCleanCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "all" }
+    ]
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.cache.CacheLsCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "io.qrun.qctl.core.cli.cache.CachePruneCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "maxSize" }
+    ]
+  },
+  {
+    "name" : "picocli.CommandLine$AutoHelpMixin",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "helpRequested" },
+      { "name" : "versionRequested" }
+    ]
+  },
+  {
+    "name" : "picocli.CommandLine$HelpCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "commands" },
+      { "name" : "helpRequested" }
+    ]
+  }
+]

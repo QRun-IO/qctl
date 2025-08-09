@@ -1,0 +1,4 @@
+io.qrun.qctl.qqq.QqqPlugin
+io.qrun.qctl.qbit.QbitPlugin
+io.qrun.qctl.qrun.QrunPlugin
+io.qrun.qctl.qstudio.QstudioPlugin
