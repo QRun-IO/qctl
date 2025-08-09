@@ -8,17 +8,21 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
- */
+*/
+
 package io.qrun.qctl.shared.api;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProblemDetail {
-  public String type;
-  public String title;
-  public Integer status;
-  public String detail;
-  public String instance;
-  public String[] errors;
+public class ProblemDetail
+{
+   public String   type;
+   public String   title;
+   public Integer  status;
+   public String   detail;
+   public String   instance;
+   public String[] errors;
 }

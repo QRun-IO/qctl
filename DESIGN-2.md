@@ -1,18 +1,20 @@
 ## 1) Design Document (V1 scope)
 
 ### V1 Scope (2-week target)
+
 - **Included**:
-  - Core CLI, config loader/merger, JSON Schema validation, profiles, env/flag overrides, structured logs
-  - qqq: new from local + HTTPS templates (signatures warn-only), YAML-driven gen, post-gen build/run/healthcheck
-  - qBit: search, add, list, update, remove with lockfile + integrity hash; signatures warn-only
-  - qRun: package (Jib) + publish to registry; minimal verify (hash/image exists); basic status/logs stub
-  - qStudio: offline-only planning; indexes code/rules/schema; writes `plan.md` + ledger entry (no provider calls/diff apply)
-  - DX/IntelliJ: Toolchains, Spotless/Checkstyle, Qodana, `.run/` configs, unit + Testcontainers tests
-  - Binaries: GraalVM native for macOS + Linux; Windows jlink/jpackage zip fallback
+   - Core CLI, config loader/merger, JSON Schema validation, profiles, env/flag overrides, structured logs
+   - qqq: new from local + HTTPS templates (signatures warn-only), YAML-driven gen, post-gen build/run/healthcheck
+   - qBit: search, add, list, update, remove with lockfile + integrity hash; signatures warn-only
+   - qRun: package (Jib) + publish to registry; minimal verify (hash/image exists); basic status/logs stub
+   - qStudio: offline-only planning; indexes code/rules/schema; writes `plan.md` + ledger entry (no provider calls/diff apply)
+   - DX/IntelliJ: Toolchains, Spotless/Checkstyle, Qodana, `.run/` configs, unit + Testcontainers tests
+   - Binaries: GraalVM native for macOS + Linux; Windows jlink/jpackage zip fallback
 - **Deferred (post-V1)**:
-  - Sigstore enforcement, plugin system, self-update, Windows signing, full SBOM/provenance, promote/rollback, qStudio diff apply
+   - Sigstore enforcement, plugin system, self-update, Windows signing, full SBOM/provenance, promote/rollback, qStudio diff apply
 
 ### Key decisions (resolved)
+
 - **Artifact format**: Default OCI; zip fallback for air-gapped/bare-metal
 - **Signatures**: Sigstore/cosign for OCI (future enforce); PGP for templates/qBits initially
 - **SemVer**: Honor lockfile first; `preferLatestMinor: true`; strict/hermetic mode available
@@ -28,78 +30,85 @@
 - **Self-update**: Weekly check (stable/beta); enterprise disable/mirror (post-V1)
 
 ### CLI UX & Commands
+
 - **Binary**: `qctl` with subcommands: `qqq`, `qbit`, `qrun`, `qstudio`, `auth`, `cache`
 - **Global flags**: `--config`, `--profile`, `--env`, `--verbose`, `--debug`, `--color <auto|always|never>`, `--output <text|json>`, `--yes`, `--dry-run`, `--timeout`, `--log.level`, `--offline`, `--hermetic`, `--telemetry.enabled`, `--version`, `--help`
-  - `--telemetry.enabled` overrides `telemetry.enabled` in config when provided.
+   - `--telemetry.enabled` overrides `telemetry.enabled` in config when provided.
 - **Exit codes**:
 
-| Exit Code | Meaning                              | Typical HTTP Status Codes |
-|-----------|--------------------------------------|---------------------------|
-| 0         | Success                              | 200, 201, 202, 204        |
-| 1         | Generic/unclassified error           | Any unexpected non-2xx not mapped below |
-| 2         | Usage/config error                   | N/A (CLI-level validation) |
-| 3         | Network/connection error             | 408, 429, 500, 502, 503, 504 (when cause is network/service availability) |
-| 4         | Authentication/authorization error   | 401, 403                  |
-| 5         | Resource not found                   | 404                       |
-| 6         | Validation failed                    | 400, 422                  |
-| 7         | Integrity/signature verification fail| 409, 412, custom integrity errors |
-| 8         | Conflict/state error                 | 409                       |
-| 9         | Cancelled by user                    | N/A (CLI-level signal)    |
-- **Completion/man**: `qctl completion <bash|zsh|fish|pwsh>`, `qctl man`
+| Exit Code                                    | Meaning                               | Typical HTTP Status Codes                                                 |
+|----------------------------------------------|---------------------------------------|---------------------------------------------------------------------------|
+| 0                                            | Success                               | 200, 201, 202, 204                                                        |
+| 1                                            | Generic/unclassified error            | Any unexpected non-2xx not mapped below                                   |
+| 2                                            | Usage/config error                    | N/A (CLI-level validation)                                                |
+| 3                                            | Network/connection error              | 408, 429, 500, 502, 503, 504 (when cause is network/service availability) |
+| 4                                            | Authentication/authorization error    | 401, 403                                                                  |
+| 5                                            | Resource not found                    | 404                                                                       |
+| 6                                            | Validation failed                     | 400, 422                                                                  |
+| 7                                            | Integrity/signature verification fail | 409, 412, custom integrity errors                                         |
+| 8                                            | Conflict/state error                  | 409                                                                       |
+| 9                                            | Cancelled by user                     | N/A (CLI-level signal)                                                    |
+ - **Completion/man**: `qctl completion <bash | zsh                                   | fish                                                                      |pwsh>`, `qctl man`
+
 - **Examples**:
-  - qqq: `qctl qqq new my-app --template web-basic --non-interactive`
-  - qBit: `qctl qbit search auth`, `qctl qbit add io.qbits/auth@^2`
-  - qRun: `qctl qrun package`, `qctl qrun publish --env dev`
-  - qStudio: `qctl qstudio plan --rules rules.yaml --out plan.md`
-  - Auth: `qctl auth login`, `qctl auth whoami`, `qctl auth logout`
-  - Cache: `qctl cache ls`, `qctl cache prune`, `qctl cache clean --all`, `qctl cache prune --max-size 500MB`
+   - qqq: `qctl qqq new my-app --template web-basic --non-interactive`
+   - qBit: `qctl qbit search auth`, `qctl qbit add io.qbits/auth@^2`
+   - qRun: `qctl qrun package`, `qctl qrun publish --env dev`
+   - qStudio: `qctl qstudio plan --rules rules.yaml --out plan.md`
+   - Auth: `qctl auth login`, `qctl auth whoami`, `qctl auth logout`
+   - Cache: `qctl cache ls`, `qctl cache prune`, `qctl cache clean --all`, `qctl cache prune --max-size 500MB`
 
 ### Offline mode
+
 - **Flag**: `--offline` forces no network I/O. Commands must use cached data only or fail fast.
 - **Failure behavior**: When a command would perform network calls while `--offline` is set, it exits with **code 3 (network)** and prints a human-readable hint. If a real API call executes (when not offline) and the server returns an error, the CLI surfaces the RFC7807 Problem Details payload.
 - **Hermetic mode**: `--hermetic` (or `qbit.resolution.hermetic: true`) resolves strictly from the lockfile; network is allowed only for locked URLs (e.g., fetching exact tarballs). `--offline` forbids all network.
 
 ### Architecture
+
 - **Modules**: `qctl-core`, `qctl-qqq`, `qctl-qbit`, `qctl-qrun`, `qctl-qstudio`, `qctl-shared`, `qctl-integration-tests`
 - **Ports/Adapters (V1)**:
-  - Ports: `TemplateProvider`, `QBitRegistry`, `QRunApi`, `LlmProvider` (offline), `AuthProvider`, `InstallerPublisher`, `SignerVerifier` (warn-only)
-  - Adapters: HTTP clients (templates/registry/api), filesystem cache, OS keychain, CLI I/O
+   - Ports: `TemplateProvider`, `QBitRegistry`, `QRunApi`, `LlmProvider` (offline), `AuthProvider`, `InstallerPublisher`, `SignerVerifier` (warn-only)
+   - Adapters: HTTP clients (templates/registry/api), filesystem cache, OS keychain, CLI I/O
 - **Config system**: `qctl.yaml` loader; JSON Schema validation; errors with JSON Pointer paths; precedence: built-ins < global < project < env (`QCTL_*`) < CLI flags
 - **Cache layout** (OS/XDG): `templates/`, `qbits/`, `artifacts/`, `trust/keys/`, `locks/`; per-project `qbits.lock`, `vendor/qbits`
 - **Security**: Trust roots scaffold; signature checks warn-only; optional TLS pinning; secrets in OS keychain; strict log redaction
-  - V1 signature behavior: when `qbit.verifySignatures` is true, signatures are checked and warnings emitted on issues; enforcement is deferred to post-V1.
+   - V1 signature behavior: when `qbit.verifySignatures` is true, signatures are checked and warnings emitted on issues; enforcement is deferred to post-V1.
 
 ### Mode details
+
 - **qqq**: Discover remote/local templates, schema-driven generation, idempotent regeneration with `--force/--merge`, post-gen `build → run → healthcheck`
 - **qBit**: Registry search, SemVer resolution, vendored layout, integrity hash
-  - **Lockfile v1**:
-    - Fields per package entry: `name`, `version`, `resolved` (URL), `integrity` (sha512), `dependencies` (map), `registry` (URL), `vendorPath`, optional `signature`
-    - Top-level: `lockfileVersion: 1`, `generatedAt` (RFC3339), `packages` (map keyed by package name)
-    - Integrity rules: verify `sha512` of tarball; warn-only in V1 on mismatch; resolve strictly from lockfile when present
-    - Dedupe policy: prefer single version per minor when compatible; otherwise keep both and record explicit tree in `dependencies`
-    - Example entry:
-      ```json
-      {
-        "lockfileVersion": 1,
-        "generatedAt": "2025-01-15T12:00:00Z",
-        "packages": {
-          "io.qbits/auth": {
-            "name": "io.qbits/auth",
-            "version": "2.3.1",
-            "resolved": "https://registry.qrun.io/io.qbits/auth/2.3.1.tgz",
-            "integrity": "sha512-b8c1…9d44",
-            "dependencies": { "io.qbits/jwt": "^1.4.0" },
-            "registry": "https://registry.qrun.io",
-            "vendorPath": "vendor/qbits/io.qbits/auth"
+   - **Lockfile v1**:
+      - Fields per package entry: `name`, `version`, `resolved` (URL), `integrity` (sha512), `dependencies` (map), `registry` (URL), `vendorPath`, optional `signature`
+      - Top-level: `lockfileVersion: 1`, `generatedAt` (RFC3339), `packages` (map keyed by package name)
+      - Integrity rules: verify `sha512` of tarball; warn-only in V1 on mismatch; resolve strictly from lockfile when present
+      - Dedupe policy: prefer single version per minor when compatible; otherwise keep both and record explicit tree in `dependencies`
+      - Example entry:
+        ```json
+        {
+          "lockfileVersion": 1,
+          "generatedAt": "2025-01-15T12:00:00Z",
+          "packages": {
+            "io.qbits/auth": {
+              "name": "io.qbits/auth",
+              "version": "2.3.1",
+              "resolved": "https://registry.qrun.io/io.qbits/auth/2.3.1.tgz",
+              "integrity": "sha512-b8c1…9d44",
+              "dependencies": { "io.qbits/jwt": "^1.4.0" },
+              "registry": "https://registry.qrun.io",
+              "vendorPath": "vendor/qbits/io.qbits/auth"
+            }
           }
         }
-      }
-      ```
+        ```
 - **qRun**: Package OCI via Jib, push to registry, verify by digest existence; status/logs endpoints (stub). Note: verify is done by checking the remote registry by digest (e.g., HEAD on the OCI manifest); this remote check is out of scope for the mock server.
 - **qStudio**: Offline plan indexer with allow/deny lists; writes `plan.md`; records ledger entry
 
 ### OCI annotations for qRun (frozen for V1)
+
 **Required labels (must be present)**
+
 - `org.opencontainers.image.title` — app name
 - `org.opencontainers.image.version` — release version
 - `org.opencontainers.image.revision` — VCS commit
@@ -107,6 +116,7 @@
 - `io.qrun.artifact` — ULID of Artifact record
 
 **Optional (nice-to-have)**
+
 - `org.opencontainers.image.description`
 - `org.opencontainers.image.url`
 - `org.opencontainers.image.created`
@@ -116,35 +126,41 @@
 - `io.qrun.qqq.manifest`
 
 ### Cross-platform packaging
+
 - **macOS/Linux**: GraalVM native images
 - **Windows**: jlink/jpackage zip fallback in V1
 - **Installers**: Archives in V1; Homebrew/winget/Scoop post-V1
 
 #### Windows baseline & path policy (V1)
+
 - Minimum: Windows 10 22H2 and Windows Server 2019
 - Default install dir for zip: `%LOCALAPPDATA%\qctl` (user-scoped)
 - Long-path support: recommend enabling `LongPathsEnabled=1` (documented); CLI handles `\\?\` prefixes in edge cases
 - Shell completion: PowerShell module installed under user profile; signed scripts (script signing optional in V1; full code signing post-V1)
 
 **Path locations (intentional split):**
+
 - Config: `%APPDATA%\qctl\qctl.yaml`
 - Cache/Install (zip default): `%LOCALAPPDATA%\qctl`
 
 ### Developer Experience & IntelliJ Standards
+
 - Maven Wrapper + Java Toolchains (latest LTS Temurin); reproducible builds (maven-enforcer)
 - Spotless + Google Java Format; Checkstyle; Error Prone; Nullness annotations; Qodana in CI
 - Tests: JUnit 5, AssertJ, Mockito, Testcontainers; golden CLI tests
 - GraalVM reflection configs committed; debug profile
 
 ### Configuration & Default qctl.yaml Schema
+
 - Note: `qrun.release.strategy` and `qrun.release.rollback` are reserved for future; ignored by V1.
 - **Precedence (lowest → highest)**: Built-in defaults < Global config < Project config < Environment (`QCTL_*`) < CLI flags
 - **Default locations**:
-  - macOS: `~/Library/Application Support/qctl/qctl.yaml`
-  - Linux: `$XDG_CONFIG_HOME/qctl/qctl.yaml` (fallback `~/.config/qctl/qctl.yaml`)
-  - Windows: `%APPDATA%\qctl\qctl.yaml`
-  - Cache dirs follow OS/XDG
+   - macOS: `~/Library/Application Support/qctl/qctl.yaml`
+   - Linux: `$XDG_CONFIG_HOME/qctl/qctl.yaml` (fallback `~/.config/qctl/qctl.yaml`)
+   - Windows: `%APPDATA%\qctl\qctl.yaml`
+   - Cache dirs follow OS/XDG
 - **Embedded JSON Schema**:
+
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -284,6 +300,7 @@
 ```
 
 - **Sample `qctl.yaml`**:
+
 ```yaml
 endpoints:
   templates: https://templates.qrun.io
@@ -360,10 +377,10 @@ profiles:
       defaultEnv: prod
 ```
 
-
 ## 2) Backend Model & API Stub (OpenAPI 3.1 with fixtures)
 
 ### Domain model (POJOs)
+
 - Templates: `Template {id, name, description, latestVersion, createdAt}`; `TemplateVersion {templateId, version, manifestUrl, signatureUrl, sha256, createdAt}`
 - qBits: `QBit {id, name, description, latestVersion, publisher, createdAt}`; `QBitVersion {qbitId, version, tarballUrl, signatureUrl, sha512, dependencies[], createdAt}`
 - Artifacts/Releases: `Artifact {id, kind:oci|zip, digest, sizeBytes, sbomUrl?, createdAt}`; `Release {id, appName, version, artifactId, channel:stable|beta, provenanceUrl?, createdAt}`
@@ -372,6 +389,7 @@ profiles:
 - Common: `ProblemDetail {type, title, status, detail, instance, errors?[]}` (RFC 7807)
 
 ### Common API rules (clients and mock)
+
 - **Idempotency**: All POSTs accept `Idempotency-Key` (header). Retries with the same key must be 201 (first) or 200 (subsequent) with the same body.
 - **Timeouts**: Default client timeout 30s; connect 5s; write 30s; read 30s.
 - **Retries**: Exponential backoff with jitter for 429/5xx (up to 3 attempts); respect `Retry-After` when present.
@@ -1212,16 +1230,18 @@ paths:
 ```
 
 ### Mock plan
+
 - Use Prism to mock directly from the spec:
-  - Install: `npm i -g @stoplight/prism-cli`
-  - Run: `prism mock DESIGN-2.md#openapi` (or extract the YAML to `openapi.yaml` and run `prism mock openapi.yaml`)
+   - Install: `npm i -g @stoplight/prism-cli`
+   - Run: `prism mock DESIGN-2.md#openapi` (or extract the YAML to `openapi.yaml` and run `prism mock openapi.yaml`)
 - Or generate a Spring server stub:
-  - `openapi-generator generate -i openapi.yaml -g spring -o mock-server`
-  - Run the stub and serve fixed examples by default
+   - `openapi-generator generate -i openapi.yaml -g spring -o mock-server`
+   - Run the stub and serve fixed examples by default
 - Or a minimal Java service skeleton with Swagger UI using the same spec
 - Point CLI tests to the mock via `--endpoint.api http://localhost:4010`
 
 ### Contract testing
+
 - Provide golden CLI tests against the mock with fixed dataset
 - Validate responses conform to schemas; assert headers (e.g., `X-Total-Count`) on list endpoints
 
@@ -1427,9 +1447,11 @@ paths:
 ```
 
 ### Telemetry stub (event shape)
+
 - **Opt-in flag**: `telemetry.enabled: true` or `--telemetry.enabled` (flag overrides config)
 - Docs: Run `qctl telemetry explain` to see the exact fields and retention policy.
 - **Event (JSON)**:
+
 ```json
 {
   "install_id": "a1b2c3d4",
@@ -1443,8 +1465,8 @@ paths:
 }
 ```
 
-
 ## 3) Build Checklist (V1)
+
 1. **Bootstrap** — Maven reactor, `.editorconfig`, Spotless/Checkstyle, CI skeleton
 2. **Core CLI/Config** — global flags, config loader, schema validation, logging
 3. **Auth Stub** — device flow against mock issuer; OS keychain storage

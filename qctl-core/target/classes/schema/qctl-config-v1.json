@@ -1,136 +1,297 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "qctl config",
-  "type": "object",
-  "properties": {
-    "output": { "enum": ["text", "json"] },
-    "endpoints": {
-      "type": "object",
-      "properties": {
-        "templates": {"type": "string", "format": "uri"},
-        "registry":  {"type": "string", "format": "uri"},
-        "api":       {"type": "string", "format": "uri"},
-        "studio":    {"type": "string", "format": "uri"},
-        "cdn":       {"type": "string", "format": "uri"}
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "qctl config",
+   "type": "object",
+   "properties": {
+      "output": {
+         "enum": [
+            "text",
+            "json"
+         ]
       },
-      "additionalProperties": false
-    },
-    "auth": {
-      "type": "object",
-      "properties": {
-        "provider": {"enum": ["oidc"]},
-        "issuer": {"type": "string", "format": "uri"},
-        "clientId": {"type": "string"},
-        "audience": {"type": "string"},
-        "scopes": {"type": "array", "items": {"type": "string"}},
-        "tokenStore": {"enum": ["os-keychain", "file"]},
-        "profile": {"type": "string"}
+      "endpoints": {
+         "type": "object",
+         "properties": {
+            "templates": {
+               "type": "string",
+               "format": "uri"
+            },
+            "registry": {
+               "type": "string",
+               "format": "uri"
+            },
+            "api": {
+               "type": "string",
+               "format": "uri"
+            },
+            "studio": {
+               "type": "string",
+               "format": "uri"
+            },
+            "cdn": {
+               "type": "string",
+               "format": "uri"
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "profiles": {"type": "object", "additionalProperties": {"$ref": "#"}},
-    "qrun": {
-      "type": "object",
-      "properties": {
-        "defaultEnv": {"enum": ["dev","stage","qa","prod"]},
-        "packageFormat": {"enum": ["oci","zip"]},
-        "release": {
-          "type": "object",
-          "properties": {
-            "channel": {"enum": ["stable","beta"]},
-            "strategy": {"enum": ["blue-green","rolling"]},
-            "rollback": {"type": "boolean"}
-          },
-          "additionalProperties": false
-        },
-        "secrets": {
-          "type": "object",
-          "properties": {
-            "provider": {"enum": ["os-keychain","env","file"]},
-            "paths": {"type": "array", "items": {"type": "string"}}
-          },
-          "additionalProperties": false
-        }
+      "auth": {
+         "type": "object",
+         "properties": {
+            "provider": {
+               "enum": [
+                  "oidc"
+               ]
+            },
+            "issuer": {
+               "type": "string",
+               "format": "uri"
+            },
+            "clientId": {
+               "type": "string"
+            },
+            "audience": {
+               "type": "string"
+            },
+            "scopes": {
+               "type": "array",
+               "items": {
+                  "type": "string"
+               }
+            },
+            "tokenStore": {
+               "enum": [
+                  "os-keychain",
+                  "file"
+               ]
+            },
+            "profile": {
+               "type": "string"
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "qbit": {
-      "type": "object",
-      "properties": {
-        "cacheDir": {"type": "string"},
-        "vendorDir": {"type": "string"},
-        "lockfile": {"type": "string"},
-        "resolution": {
-          "type": "object",
-          "properties": {
-            "preferLatestMinor": {"type": "boolean"},
-            "dedupe": {"type": "boolean"},
-            "hermetic": {"type": "boolean"}
-          },
-          "additionalProperties": false
-        },
-        "verifySignatures": {"type": "boolean"}
+      "profiles": {
+         "type": "object",
+         "additionalProperties": {
+            "$ref": "#"
+         }
       },
-      "additionalProperties": false
-    },
-    "qqq": {
-      "type": "object",
-      "properties": {
-        "defaultTemplate": {"type": "string"},
-        "postGen": {"type": "array", "items": {"type": "string"}},
-        "generator": {
-          "type": "object",
-          "properties": {
-            "interactive": {"type": "boolean"},
-            "validate": {"enum": ["strict","lenient"]}
-          },
-          "additionalProperties": false
-        }
+      "qrun": {
+         "type": "object",
+         "properties": {
+            "defaultEnv": {
+               "enum": [
+                  "dev",
+                  "stage",
+                  "qa",
+                  "prod"
+               ]
+            },
+            "packageFormat": {
+               "enum": [
+                  "oci",
+                  "zip"
+               ]
+            },
+            "release": {
+               "type": "object",
+               "properties": {
+                  "channel": {
+                     "enum": [
+                        "stable",
+                        "beta"
+                     ]
+                  },
+                  "strategy": {
+                     "enum": [
+                        "blue-green",
+                        "rolling"
+                     ]
+                  },
+                  "rollback": {
+                     "type": "boolean"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "secrets": {
+               "type": "object",
+               "properties": {
+                  "provider": {
+                     "enum": [
+                        "os-keychain",
+                        "env",
+                        "file"
+                     ]
+                  },
+                  "paths": {
+                     "type": "array",
+                     "items": {
+                        "type": "string"
+                     }
+                  }
+               },
+               "additionalProperties": false
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "qstudio": {
-      "type": "object",
-      "properties": {
-        "provider": {"enum": ["openai","anthropic","azure","selfhosted"]},
-        "model": {"type": "string"},
-        "policy": {
-          "type": "object",
-          "properties": {
-            "redactPaths": {"type": "array", "items": {"type": "string"}},
-            "allowPaths": {"type": "array", "items": {"type": "string"}},
-            "maxTokens": {"type": "integer", "minimum": 1024}
-          },
-          "additionalProperties": false
-        },
-        "confirmWrites": {"type": "boolean"}
+      "qbit": {
+         "type": "object",
+         "properties": {
+            "cacheDir": {
+               "type": "string"
+            },
+            "vendorDir": {
+               "type": "string"
+            },
+            "lockfile": {
+               "type": "string"
+            },
+            "resolution": {
+               "type": "object",
+               "properties": {
+                  "preferLatestMinor": {
+                     "type": "boolean"
+                  },
+                  "dedupe": {
+                     "type": "boolean"
+                  },
+                  "hermetic": {
+                     "type": "boolean"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "verifySignatures": {
+               "type": "boolean"
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "telemetry": {
-      "type": "object",
-      "properties": {
-        "enabled": {"type": "boolean"}
+      "qqq": {
+         "type": "object",
+         "properties": {
+            "defaultTemplate": {
+               "type": "string"
+            },
+            "postGen": {
+               "type": "array",
+               "items": {
+                  "type": "string"
+               }
+            },
+            "generator": {
+               "type": "object",
+               "properties": {
+                  "interactive": {
+                     "type": "boolean"
+                  },
+                  "validate": {
+                     "enum": [
+                        "strict",
+                        "lenient"
+                     ]
+                  }
+               },
+               "additionalProperties": false
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "updates": {
-      "type": "object",
-      "properties": {
-        "autoCheck": {"type": "boolean"},
-        "channel": {"enum": ["stable","beta"]}
+      "qstudio": {
+         "type": "object",
+         "properties": {
+            "provider": {
+               "enum": [
+                  "openai",
+                  "anthropic",
+                  "azure",
+                  "selfhosted"
+               ]
+            },
+            "model": {
+               "type": "string"
+            },
+            "policy": {
+               "type": "object",
+               "properties": {
+                  "redactPaths": {
+                     "type": "array",
+                     "items": {
+                        "type": "string"
+                     }
+                  },
+                  "allowPaths": {
+                     "type": "array",
+                     "items": {
+                        "type": "string"
+                     }
+                  },
+                  "maxTokens": {
+                     "type": "integer",
+                     "minimum": 1024
+                  }
+               },
+               "additionalProperties": false
+            },
+            "confirmWrites": {
+               "type": "boolean"
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    },
-    "log": {
-      "type": "object",
-      "properties": {
-        "level": {"enum": ["info","debug","trace"]},
-        "format": {"enum": ["text","json"]},
-        "color": {"enum": ["auto","always","never"]}
+      "telemetry": {
+         "type": "object",
+         "properties": {
+            "enabled": {
+               "type": "boolean"
+            }
+         },
+         "additionalProperties": false
       },
-      "additionalProperties": false
-    }
-  },
-  "additionalProperties": false
+      "updates": {
+         "type": "object",
+         "properties": {
+            "autoCheck": {
+               "type": "boolean"
+            },
+            "channel": {
+               "enum": [
+                  "stable",
+                  "beta"
+               ]
+            }
+         },
+         "additionalProperties": false
+      },
+      "log": {
+         "type": "object",
+         "properties": {
+            "level": {
+               "enum": [
+                  "info",
+                  "debug",
+                  "trace"
+               ]
+            },
+            "format": {
+               "enum": [
+                  "text",
+                  "json"
+               ]
+            },
+            "color": {
+               "enum": [
+                  "auto",
+                  "always",
+                  "never"
+               ]
+            }
+         },
+         "additionalProperties": false
+      }
+   },
+   "additionalProperties": false
 }

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: io.qrun.qctl.qbit.lock.LockfileIOTest
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in io.qrun.qctl.qbit.lock.LockfileIOTest

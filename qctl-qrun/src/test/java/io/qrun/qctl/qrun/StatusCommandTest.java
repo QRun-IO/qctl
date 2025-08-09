@@ -11,41 +11,47 @@
  */
 package io.qrun.qctl.qrun;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class StatusCommandTest {
 
-  @Test
-  void render_text_output() {
-    Map<String, Object> status = new HashMap<>();
-    status.put("status", "healthy");
-    status.put("version", "0.1.0");
-    status.put("updatedAt", "2025-01-15T12:05:00Z");
+class StatusCommandTest
+{
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(baos);
-    StatusCommand.renderStatus(status, "demo-app", "dev", "text", out);
-    String s = baos.toString().trim();
-    assertThat(s).contains("demo-app").contains("env dev").contains("status=healthy");
-  }
+   @Test
+   void render_text_output()
+   {
+      Map<String, Object> status = new HashMap<>();
+      status.put("status", "healthy");
+      status.put("version", "0.1.0");
+      status.put("updatedAt", "2025-01-15T12:05:00Z");
 
-  @Test
-  void render_json_output() {
-    Map<String, Object> status = new HashMap<>();
-    status.put("status", "healthy");
-    status.put("version", "0.1.0");
-    status.put("updatedAt", "2025-01-15T12:05:00Z");
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      PrintStream           out  = new PrintStream(baos);
+      StatusCommand.renderStatus(status, "demo-app", "dev", "text", out);
+      String s = baos.toString().trim();
+      assertThat(s).contains("demo-app").contains("env dev").contains("status=healthy");
+   }
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(baos);
-    StatusCommand.renderStatus(status, "demo-app", "dev", "json", out);
-    String json = baos.toString().trim();
-    assertThat(json).startsWith("{").contains("\"app\":\"demo-app\"").contains("\"status\":");
-  }
+
+
+   @Test
+   void render_json_output()
+   {
+      Map<String, Object> status = new HashMap<>();
+      status.put("status", "healthy");
+      status.put("version", "0.1.0");
+      status.put("updatedAt", "2025-01-15T12:05:00Z");
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      PrintStream           out  = new PrintStream(baos);
+      StatusCommand.renderStatus(status, "demo-app", "dev", "json", out);
+      String json = baos.toString().trim();
+      assertThat(json).startsWith("{").contains("\"app\":\"demo-app\"").contains("\"status\":");
+   }
 }

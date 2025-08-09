@@ -1,54 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <checkstyle version="10.17.0">
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/spi/CommandPlugin.java">
-<error line="12" column="1" severity="warning" message="&apos;package&apos; should be separated from previous line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.EmptyLineSeparatorCheck"/>
-<error line="15" column="32" severity="warning" message="&apos;{&apos; at column 32 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="20" column="3" severity="warning" message="&apos;method def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
+<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/semver/SemVer.java">
-<error line="12" column="1" severity="warning" message="&apos;package&apos; should be separated from previous line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.EmptyLineSeparatorCheck"/>
-<error line="18" column="57" severity="warning" message="&apos;{&apos; at column 57 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="19" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="20" column="3" severity="warning" message="Each variable declaration must be in its own statement." source="com.puppycrawl.tools.checkstyle.checks.coding.MultipleVariableDeclarationsCheck"/>
-<error line="20" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="22" column="3" severity="warning" message="&apos;ctor def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="22" column="3" severity="warning" message="Missing a Javadoc comment." source="com.puppycrawl.tools.checkstyle.checks.javadoc.MissingJavadocMethodCheck"/>
-<error line="22" column="50" severity="warning" message="&apos;{&apos; at column 50 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="23" column="5" severity="warning" message="&apos;ctor def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="24" column="5" severity="warning" message="&apos;ctor def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="25" column="5" severity="warning" message="&apos;ctor def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="26" column="3" severity="warning" message="&apos;ctor def rcurly&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="28" column="3" severity="warning" message="&apos;method def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="28" column="3" severity="warning" message="Missing a Javadoc comment." source="com.puppycrawl.tools.checkstyle.checks.javadoc.MissingJavadocMethodCheck"/>
-<error line="28" column="40" severity="warning" message="&apos;{&apos; at column 40 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="29" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="30" column="5" severity="warning" message="&apos;if&apos; construct must use &apos;{}&apos;s." source="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
-<error line="30" column="5" severity="warning" message="&apos;if&apos; has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="31" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="33" column="3" severity="warning" message="&apos;method def rcurly&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="35" column="3" severity="warning" message="&apos;method def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="36" column="34" severity="warning" message="&apos;{&apos; at column 34 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="37" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="38" column="5" severity="warning" message="&apos;if&apos; construct must use &apos;{}&apos;s." source="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
-<error line="38" column="5" severity="warning" message="&apos;if&apos; has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="39" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="40" column="5" severity="warning" message="&apos;if&apos; construct must use &apos;{}&apos;s." source="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
-<error line="40" column="5" severity="warning" message="&apos;if&apos; has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="41" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="42" column="3" severity="warning" message="&apos;method def rcurly&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="44" column="3" severity="warning" message="&apos;method def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="45" column="28" severity="warning" message="&apos;{&apos; at column 28 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="46" column="5" severity="warning" message="&apos;method def&apos; child has incorrect indentation level 4, expected level should be 6." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="47" column="3" severity="warning" message="&apos;method def rcurly&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
+<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 <file name="/Users/james.maes/Git.Local/QRunIO/qctl/qctl-shared/src/main/java/io/qrun/qctl/shared/api/ProblemDetail.java">
-<error line="12" column="1" severity="warning" message="&apos;package&apos; should be separated from previous line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.EmptyLineSeparatorCheck"/>
-<error line="17" column="28" severity="warning" message="&apos;{&apos; at column 28 should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.blocks.LeftCurlyCheck"/>
-<error line="18" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="19" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="20" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="21" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="22" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
-<error line="23" column="3" severity="warning" message="&apos;member def modifier&apos; has incorrect indentation level 2, expected level should be 3." source="com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"/>
+<error line="11" severity="warning" message="Line does not match expected header line of &apos; */&apos;." source="com.puppycrawl.tools.checkstyle.checks.header.HeaderCheck"/>
 </file>
 </checkstyle>
