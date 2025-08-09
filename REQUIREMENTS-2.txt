@@ -1,0 +1,243 @@
+
+qctl — V1 Scope Design Prompt (Design First, with Fixed Example Dataset)
+
+You are acting as a principal engineer + product architect.
+Your task is to produce a design document, backend domain model, OpenAPI 3.1 spec (with fixtures), and schemas/contracts for qctl, a Java CLI for the qqq ecosystem.
+Do not write implementation code yet—only the design & contracts so we can review before coding.
+
+⸻
+
+0) V1 Scope (2-Week Target)
+
+Included in V1:
+	•	Core CLI + config loader/merger + JSON Schema validation + profiles + env/flag overrides + structured logs.
+	•	qqq: new from local + HTTPS templates (signatures warn-only in V1); YAML-driven gen; post-gen build/run/healthcheck.
+	•	qBit: search, add, list, update, remove with lockfile + integrity hash; signatures warn-only.
+	•	qRun: package (Jib) + publish to registry; minimal verify (hash/image exists); basic status/logs stub.
+	•	qStudio: plan offline only; indexes code/rules/schema, writes plan.md + ledger entry (no provider calls/diff apply).
+	•	DX/IntelliJ: Toolchains, Spotless/Checkstyle, Qodana, .run/ configs, unit + Testcontainers tests.
+	•	Binaries: GraalVM native for macOS + Linux; Windows = jlink/jpackage zip fallback.
+
+Deferred (Post-V1):
+	•	Sigstore enforcement, plugin system, self-update, Windows signing, full SBOM/provenance, promote/rollback, qStudio diff apply.
+
+⸻
+
+1) Key Decisions (Resolved)
+	•	Artifact format: Default OCI; zip fallback for air-gapped/bare-metal.
+	•	Signatures: Sigstore/cosign for OCI (future enforce); PGP for templates/qBits initially.
+	•	SemVer: Honor lockfile first; preferLatestMinor: true; strict mode for hermetic builds.
+	•	Templates: Handlebars/Mustache default; Freemarker optional.
+	•	YAML validation: JSON Schema + bespoke validators only for computed/cross-field rules.
+	•	LLM: Default self-hosted; adapters for OpenAI/Anthropic/Azure; opt-in for cloud.
+	•	Redaction: Conservative defaults (**/*.pem, .env*, secrets/**, .ssh/**, common token files).
+	•	Auth: OAuth Device Flow default; loopback for desktop; service accounts later; OS keychain for tokens.
+	•	Plugins: Signed-only by default; isolated classloaders; minimal SPI.
+	•	Telemetry: Opt-in only; minimal fields (anon ID, command, duration, exit, version, os/arch).
+	•	SBOM: MVP runtime-only; GA full transitive CycloneDX.
+	•	Cache: LRU with max size; qctl cache commands.
+	•	Self-update: Weekly check (stable/beta); enterprise disable/mirror (post-V1).
+
+⸻
+
+2) Deliverables (Produce these sections only)
+
+1) Design Document (V1-only)
+
+CLI UX & Commands
+	•	Binary: qctl with subcommands: qqq, qbit, qrun, qstudio.
+	•	Global flags: --config, --profile, --env, --verbose, --debug, --color <auto|always|never>, --output <text|json>, --yes, --dry-run, --timeout, --log.level, --version, --help.
+	•	Exit codes: 0 ok, 1 generic, 2 usage/config, 3 network, 4 auth, 5 not-found, 6 validation, 7 integrity, 8 conflict, 9 cancelled.
+	•	Completion/man: qctl completion <bash|zsh|fish|pwsh>, qctl man.
+	•	Examples for each mode’s main commands.
+
+Architecture
+	•	Modules: qctl-core, qctl-qqq, qctl-qbit, qctl-qrun, qctl-qstudio, qctl-shared, qctl-integration-tests.
+	•	Ports/Adapters (V1): TemplateProvider, QBitRegistry, QRunApi, LlmProvider(offline), AuthProvider, InstallerPublisher, SignerVerifier(warn-only).
+	•	Config system: qctl.yaml loader; JSON Schema validation; errors with JSON Pointer paths.
+	•	Cache layout: OS/XDG dirs for templates, qBits, artifacts, trust keys, lockfiles.
+	•	Security: trust roots, warn-only signature checks; optional TLS pinning.
+
+Mode Details
+	•	qqq: Remote/local template discovery, schema-driven generation, idempotent regen, post-gen pipeline.
+	•	qBit: Registry search, SemVer resolution, lockfile v1 schema, vendored layout & integrity hash.
+	•	qRun: Package OCI via Jib, push to registry, verify hash; minimal status/logs.
+	•	qStudio: Offline plan indexer, allow/deny lists, ledger entry schema.
+
+Cross-Platform Packaging
+	•	GraalVM native (macOS/Linux); jlink/jpackage zip fallback (Windows).
+	•	V1 installers = archives; brew/winget/scoop post-V1.
+
+Security
+	•	PGP warn-only for templates/qBits; optional cosign bundle for OCI.
+	•	Secrets in OS keychain; strict log redaction.
+
+Developer Experience & IntelliJ Standards
+	•	Maven Wrapper + Java Toolchains (latest LTS Temurin); reproducible builds.
+	•	Spotless + Google Java Format; Checkstyle; Error Prone; Nullness annotations; Qodana.
+	•	Tests: JUnit 5, AssertJ, Mockito, Testcontainers, golden CLI tests.
+	•	IntelliJ: .editorconfig, .run/ configs, committed code style/inspections.
+	•	GraalVM reflection configs committed; debug profile.
+
+Configuration & Default qctl.yaml Schema
+	•	Precedence, paths per OS, env var mapping, embedded JSON Schema, sample YAML.
+
+⸻
+
+2) Backend Model & API Stub (Swagger/OpenAPI with Fixtures)
+
+Domain Model (POJOs)
+	•	Templates: Template {id, name, description, latestVersion, createdAt}
+TemplateVersion {templateId, version, manifestUrl, signatureUrl, sha256, createdAt}
+	•	qBits: QBit {id, name, description, latestVersion, publisher, createdAt}
+QBitVersion {qbitId, version, tarballUrl, signatureUrl, sha512, dependencies[], createdAt}
+	•	Artifacts/Releases: Artifact {id, kind:oci|zip, digest, sizeBytes, sbomUrl?, createdAt}
+Release {id, appName, version, artifactId, channel:stable|beta, provenanceUrl?, createdAt}
+	•	Environments/Deployments:
+Environment {name:dev|stage|qa|prod, configOverrides{}, createdAt}
+Deployment {id, appName, env, releaseId, status:pending|active|failed|rolled_back, createdAt, updatedAt}
+	•	LLM Planning: PlanRequest {projectId?, allowPaths[], denyPaths[], request}
+Plan {id, summary, steps[], costEstimate?, tokenEstimate?, createdAt}
+LedgerEntry {id, planId, provider, promptHash, outputHash, artifacts[]?, timestamp}
+	•	Common: ProblemDetail {type, title, status, detail, instance, errors?[]} (RFC7807)
+
+OpenAPI 3.1 Spec
+
+Produce a single OpenAPI 3.1 YAML with schemas for all POJOs and these paths:
+	•	Templates
+	•	GET /v1/templates?query=&page=&size= → list Template[] (+ paging)
+	•	GET /v1/templates/{templateId} → Template
+	•	GET /v1/templates/{templateId}/versions → TemplateVersion[]
+	•	GET /v1/templates/{templateId}/versions/{version} → TemplateVersion
+	•	qBits
+	•	GET /v1/qbits?query=&page=&size= → list QBit[]
+	•	GET /v1/qbits/{qbitId} → QBit
+	•	GET /v1/qbits/{qbitId}/versions → QBitVersion[]
+	•	GET /v1/qbits/{qbitId}/versions/{version} → QBitVersion
+	•	Artifacts & Releases
+	•	POST /v1/artifacts (JSON manifest or upload-URL flow) → Artifact
+	•	GET /v1/artifacts/{artifactId} → Artifact
+	•	POST /v1/releases → Release
+	•	GET /v1/releases/{releaseId} → Release
+	•	Deployments & App State
+	•	POST /v1/deployments → Deployment
+	•	GET /v1/deployments/{deploymentId} → Deployment
+	•	GET /v1/apps/{appName}/deployments?env= → Deployment[] (latest first)
+	•	GET /v1/apps/{appName}/status?env= → {status, version, updatedAt}
+	•	GET /v1/apps/{appName}/logs?env=&follow= → text/stream (stub returns sample text)
+	•	qStudio (V1 plan only)
+	•	POST /v1/qstudio/plan → Plan
+	•	GET /v1/qstudio/plans/{planId} → Plan
+	•	GET /v1/qstudio/plans/{planId}/ledger → LedgerEntry[]
+
+Standards & Conventions
+	•	Errors use RFC7807 Problem Details.
+	•	Auth: openIdConnect securityScheme + optional apiKey for mock/testing.
+	•	Pagination: page, size, and X-Total-Count header.
+	•	Integrity: include signatureUrl, sha256/sha512.
+	•	IDs: ULIDs (strings). Timestamps: RFC3339 UTC.
+
+Fixed Example Dataset (Deterministic Fixtures)
+
+Embed the following exact example objects as OpenAPI examples and ensure the mock server returns them by default.
+Use base timestamp 2025-01-15T12:00:00Z. ULIDs are fixed.
+
+Templates
+	•	Template:
+	•	id: 01J0M3K6K7Q8Z6ZDX8Q5A2F7KM, name: "web-basic", description: "Basic web app starter", latestVersion: "1.2.0", createdAt: 2025-01-15T12:00:00Z
+	•	TemplateVersion (two):
+	•	version: "1.2.0", manifestUrl: https://templates.qrun.io/web-basic/1.2.0/manifest.yaml, signatureUrl: https://templates.qrun.io/web-basic/1.2.0/manifest.sig, sha256: "6e3b…a9f1"
+	•	version: "1.1.0", manifestUrl: https://templates.qrun.io/web-basic/1.1.0/manifest.yaml, signatureUrl: https://templates.qrun.io/web-basic/1.1.0/manifest.sig, sha256: "4a12…be77"
+
+qBits
+	•	QBit auth:
+	•	id: 01J0M3QF5V2J0F1TBKQ1S6F2ZP, name: "io.qbits/auth", description: "Authentication & RBAC", latestVersion: "2.3.1", publisher: "qrun.io", createdAt: 2025-01-15T12:00:00Z
+	•	QBitVersion (auth@2.3.1):
+	•	tarballUrl: https://registry.qrun.io/io.qbits/auth/2.3.1.tgz, signatureUrl: https://registry.qrun.io/io.qbits/auth/2.3.1.tgz.sig, sha512: "b8c1…9d44", dependencies: ["io.qbits/jwt@^1.4.0"]
+
+Artifacts/Releases
+	•	Artifact (OCI):
+	•	id: 01J0M40G3SJ0QJ9E3V1QK8A3R2, kind: "oci", digest: "sha256:9f2c…1d0b", sizeBytes: 73400320, sbomUrl: "https://cdn.qrun.io/artifacts/01J0M40G…/sbom.cdx.json", createdAt: 2025-01-15T12:00:00Z
+	•	Release:
+	•	id: 01J0M41V9X5J2B4M5H0G7D2T1Q, appName: "demo-app", version: "0.1.0", artifactId: 01J0M40G3SJ0QJ9E3V1QK8A3R2, channel: "stable", provenanceUrl: "https://cdn.qrun.io/releases/01J0M41V…/provenance.json"
+
+Environments/Deployments
+	•	Deployment (dev active):
+	•	id: 01J0M43J8E4S7N9C0L2X5V6B3M, appName: "demo-app", env: "dev", releaseId: 01J0M41V9X5J2B4M5H0G7D2T1Q, status: "active", createdAt: 2025-01-15T12:00:00Z, updatedAt: 2025-01-15T12:05:00Z
+
+qStudio
+	•	Plan:
+	•	id: 01J0M45Q2K6L8P0S3N4R7U8W9X, summary: "Add RBAC to admin panel", steps: ["Analyze roles","Add JWT middleware","Generate tests"], tokenEstimate: 12000, createdAt: 2025-01-15T12:00:00Z
+	•	LedgerEntry (one):
+	•	id: 01J0M46Z4B7C9D1E2F3G4H5J6K, planId: 01J0M45Q2K6L8P0S3N4R7U8W9X, provider: "selfhosted", promptHash: "ph_abc123", outputHash: "oh_def456", timestamp: 2025-01-15T12:01:00Z
+
+Status/Logs
+	•	GET /v1/apps/demo-app/status?env=dev → { "status": "healthy", "version": "0.1.0", "updatedAt": "2025-01-15T12:05:00Z" }
+	•	GET /v1/apps/demo-app/logs?env=dev (no follow) → text:
+
+2025-01-15T12:04:57Z demo-app[web]: started
+2025-01-15T12:04:58Z demo-app[web]: listening on :8080
+2025-01-15T12:05:00Z demo-app[web]: health=ok
+
+
+
+Pagination Defaults
+	•	page=0, size=20, X-Total-Count reflecting total items; examples included in list endpoints.
+
+Require the OpenAPI YAML to embed these as named example objects and to instruct the mock server to return them by default.
+
+Mock Plan
+	•	Provide a short README on running the mock via:
+	•	OpenAPI Generator (Spring server stub), or
+	•	Prism/Stoplight (mock from spec), or
+	•	QQQ Java service skeleton with Swagger UI.
+	•	CLI tests point to mock via --endpoint.api.
+
+Contract Testing
+	•	Provide JSON Schemas for: TemplateVersion, QBitVersion, Artifact, Release, Deployment, Plan, ProblemDetail.
+	•	In CI, run CLI golden tests against the mock with the fixed dataset.
+
+⸻
+
+3) Build Checklist (V1)
+	1.	Bootstrap — Maven reactor, .editorconfig, Spotless/Checkstyle, CI skeleton.
+	2.	Core CLI/Config — global flags, config loader, schema validation, logging.
+	3.	Auth Stub — device flow against mock issuer; OS keychain storage.
+	4.	qqq — local+remote template load, Handlebars render, post-gen.
+	5.	qBit — search/add/update/remove/list; lockfile v1; integrity hash.
+	6.	qRun — package OCI (Jib), push to mock registry, verify hash.
+	7.	qStudio — offline plan, ledger entry.
+	8.	Completion/Man — generators wired.
+	9.	Telemetry Stub — opt-in, minimal fields.
+	10.	Security — warn-only signatures, trust store scaffold.
+	11.	API Mock — publish OpenAPI with fixtures; serve Swagger UI.
+	12.	Tests — unit + CLI golden + contract (mock).
+	13.	Native Builds — GraalVM macOS/Linux; Windows jlink zip.
+
+⸻
+
+Non-Negotiable Rules
+	•	Do not write production logic yet.
+	•	Output the design doc, domain model, OpenAPI spec with fixtures, schemas, and build checklist only.
+	•	Prefer concrete, testable decisions with reasons.
+	•	Use clear Markdown with headings, bullets, and short examples.
+
+⸻
+
+Reference Command Examples
+
+# qqq
+qctl qqq new my-app --template web-basic --non-interactive
+
+# qBit
+qctl qbit search auth
+qctl qbit add io.qbits/auth@^2
+
+# qRun
+qctl qrun package
+qctl qrun publish --env dev
+
+# qStudio
+qctl qstudio plan --rules rules.yaml --out plan.md
+
+
