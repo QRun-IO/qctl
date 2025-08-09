@@ -151,6 +151,23 @@
 - GraalVM reflection configs committed; debug profile
 - All classes, packages, and methods must include full flowerbox-style Javadoc comments.
 
+#### Javadoc flowerbox style (canonical format)
+
+Use the following header format for all methods (and analogous style for classes and packages):
+
+```java
+/***************************************************************************
+ * Parses a human-readable size expression into its byte count.
+ *
+ * Why: Centralizes unit parsing (B, KB, MB, GB) and validation for cache pruning.
+ *
+ * @param sizeExpression human-readable size (e.g., "500MB", "1.5 GB", "1024B")
+ * @return the size in bytes (non-negative)
+ * @throws IllegalArgumentException if the expression is empty or invalid
+ * @since 0.1.0
+ ***************************************************************************/
+```
+
 ### Configuration & Default qctl.yaml Schema
 
 - Note: `qrun.release.strategy` and `qrun.release.rollback` are reserved for future; ignored by V1.

@@ -78,7 +78,21 @@ Developer Experience & IntelliJ Standards
 	•	Tests: JUnit 5, AssertJ, Mockito, Testcontainers, golden CLI tests.
 	•	IntelliJ: .editorconfig, .run/ configs, committed code style/inspections.
 	•	GraalVM reflection configs committed; debug profile.
-	•	All classes, packages, and methods need full flowerbox style javadoc comments on them. 
+	•	All classes, packages, and methods need full flowerbox style javadoc comments on them.
+
+	Flowerbox Javadoc (canonical format)
+	```java
+	/***************************************************************************
+	 * Parses a human-readable size expression into its byte count.
+	 *
+	 * Why: Centralizes unit parsing (B, KB, MB, GB) and validation for cache pruning.
+	 *
+	 * @param sizeExpression human-readable size (e.g., "500MB", "1.5 GB", "1024B")
+	 * @return the size in bytes (non-negative)
+	 * @throws IllegalArgumentException if the expression is empty or invalid
+	 * @since 0.1.0
+	 ***************************************************************************/
+	```
    
 
 Configuration & Default qctl.yaml Schema
