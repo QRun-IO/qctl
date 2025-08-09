@@ -1,2 +1,8 @@
+io/qrun/qctl/core/cli/cache/CachePruneCommandTest.class
+io/qrun/qctl/core/http/ApiClientTest$2.class
 io/qrun/qctl/core/sys/SystemPathsTest.class
+io/qrun/qctl/core/http/ApiClientTest$SimpleResponse.class
+io/qrun/qctl/core/http/ApiClientTest$1.class
+io/qrun/qctl/core/http/ApiClientTest.class
+io/qrun/qctl/core/http/ApiClientTest$CapturingClient.class
 io/qrun/qctl/core/config/ConfigLoaderTest.class

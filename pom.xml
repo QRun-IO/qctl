@@ -36,7 +36,7 @@
     <mockito.version>5.12.0</mockito.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     <spotless.version>2.43.0</spotless.version>
-    <checkstyle.version>10.15.0</checkstyle.version>
+    <checkstyle.version>10.17.0</checkstyle.version>
     <errorprone.version>2.28.0</errorprone.version>
   </properties>
 
@@ -105,5 +105,61 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <licenseHeader>
+              <file>${maven.multiModuleProjectDirectory}/codestyle/license.txt</file>
+            </licenseHeader>
+            <googleJavaFormat>
+              <version>1.17.0</version>
+            </googleJavaFormat>
+            <removeUnusedImports/>
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <id>spotless-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.3.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>codestyle/checkstyle.config.xml</configLocation>
+          <consoleOutput>true</consoleOutput>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <failsOnError>true</failsOnError>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <violationSeverity>error</violationSeverity>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate-style</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

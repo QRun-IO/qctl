@@ -1,3 +1,5 @@
 io/qrun/qctl/qrun/QrunPlugin.class
+io/qrun/qctl/qrun/PackageCommand.class
+io/qrun/qctl/qrun/PublishCommand.class
 io/qrun/qctl/qrun/QrunCommand.class
 io/qrun/qctl/qrun/StatusCommand.class

@@ -1,14 +1,25 @@
+/*
+ * All Rights Reserved
+ *
+ * Copyright (c) 2025. QRunIO.   Contact: contact@qrun.io
+ *
+ * THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
+ * UNAUTHORIZED COPYING, TRANSFERRING, OR REPRODUCTION OF ANY PART OF THIS PROJECT, VIA ANY MEDIUM, IS STRICTLY PROHIBITED.
+ *
+ * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
+ * for any purpose other than the purpose for which they were provided to you.
+ */
 package io.qrun.qctl.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ExecutionException;
 import picocli.CommandLine.HelpCommand;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
-import picocli.CommandLine.Model.CommandSpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Command(
     name = "qctl",
@@ -37,7 +48,9 @@ public class Main implements Runnable {
   @Option(names = "--offline", description = "Run without any network access")
   boolean offline;
 
-  @Option(names = "--hermetic", description = "Resolve strictly from lockfile; allow network only for locked URLs")
+  @Option(
+      names = "--hermetic",
+      description = "Resolve strictly from lockfile; allow network only for locked URLs")
   boolean hermetic;
 
   @Option(names = "--telemetry.enabled", description = "Enable telemetry for this invocation")
@@ -62,8 +75,9 @@ public class Main implements Runnable {
   public void run() {
     try {
       // Load config from default locations and env overlay
-      java.nio.file.Path configPath = io.qrun.qctl.core.sys.SystemPaths.ensureDir(
-              io.qrun.qctl.core.sys.SystemPaths.configDir()).resolve("qctl.yaml");
+      java.nio.file.Path configPath =
+          io.qrun.qctl.core.sys.SystemPaths.ensureDir(io.qrun.qctl.core.sys.SystemPaths.configDir())
+              .resolve("qctl.yaml");
       com.fasterxml.jackson.databind.JsonNode cfg =
           io.qrun.qctl.core.config.ConfigLoader.loadAndValidate(configPath, System.getenv());
       spec.commandLine().getOut().println("qctl: no command specified. Use --help.");

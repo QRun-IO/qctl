@@ -2,16 +2,6 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Annotation profile for qctl" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.7.5/picocli-codegen-4.7.5.jar" />
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.7.5/picocli-4.7.5.jar" />
-        </processorPath>
-        <module name="qctl-core" />
-      </profile>
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -22,6 +12,16 @@
         <module name="qctl-integration-tests" />
         <module name="qctl-qrun" />
         <module name="qctl-shared" />
+      </profile>
+      <profile name="Annotation profile for qctl" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.7.5/picocli-codegen-4.7.5.jar" />
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.7.5/picocli-4.7.5.jar" />
+        </processorPath>
+        <module name="qctl-core" />
       </profile>
     </annotationProcessing>
   </component>

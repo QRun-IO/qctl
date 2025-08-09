@@ -1,27 +1,41 @@
+/*
+ * All Rights Reserved
+ *
+ * Copyright (c) 2025. QRunIO.   Contact: contact@qrun.io
+ *
+ * THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
+ * UNAUTHORIZED COPYING, TRANSFERRING, OR REPRODUCTION OF ANY PART OF THIS PROJECT, VIA ANY MEDIUM, IS STRICTLY PROHIBITED.
+ *
+ * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
+ * for any purpose other than the purpose for which they were provided to you.
+ */
 package io.qrun.qctl.core.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.qrun.qctl.shared.api.ProblemDetail;
-import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
 import javax.net.ssl.SSLSession;
+import org.junit.jupiter.api.Test;
 
 class ApiClientTest {
 
   @Test
   void header_provider_is_invoked() throws Exception {
     CapturingClient client = new CapturingClient(200, "{}");
-    ApiClient api = new ApiClient(Duration.ofSeconds(1), b -> b.header("X-Custom", "abc")) {
-      @Override protected HttpResponse<byte[]> sendOnce(HttpRequest req) { client.captured = req; return client.response; }
-    };
+    ApiClient api =
+        new ApiClient(Duration.ofSeconds(1), b -> b.header("X-Custom", "abc")) {
+          @Override
+          protected HttpResponse<byte[]> sendOnce(HttpRequest req) {
+            client.captured = req;
+            return client.response;
+          }
+        };
     api.getJson(URI.create("http://localhost/test"), java.util.Map.class);
     assertThat(client.captured.headers().firstValue("X-Custom")).contains("abc");
   }
@@ -42,12 +56,17 @@ class ApiClientTest {
   private void assertExitForStatus(int status, int expectedExit) throws Exception {
     byte[] body = problem(status).getBytes();
     HttpResponse<byte[]> resp = new SimpleResponse(status, body);
-    ApiClient client = new ApiClient(Duration.ofSeconds(1), b -> {}) {
-      @Override protected HttpResponse<byte[]> sendOnce(HttpRequest req) { return resp; }
-    };
+    ApiClient client =
+        new ApiClient(Duration.ofSeconds(1), b -> {}) {
+          @Override
+          protected HttpResponse<byte[]> sendOnce(HttpRequest req) {
+            return resp;
+          }
+        };
     assertThatThrownBy(() -> client.getJson(URI.create("http://localhost/x"), java.util.Map.class))
         .isInstanceOf(ApiClient.ApiException.class)
-        .satisfies(ex -> assertThat(((ApiClient.ApiException) ex).exitCode).isEqualTo(expectedExit));
+        .satisfies(
+            ex -> assertThat(((ApiClient.ApiException) ex).exitCode).isEqualTo(expectedExit));
   }
 
   private static String problem(int status) throws Exception {
@@ -55,27 +74,65 @@ class ApiClientTest {
     pd.status = status;
     pd.title = "Status " + status;
     pd.detail = "test";
-    com.fasterxml.jackson.databind.ObjectMapper m = new com.fasterxml.jackson.databind.ObjectMapper();
+    com.fasterxml.jackson.databind.ObjectMapper m =
+        new com.fasterxml.jackson.databind.ObjectMapper();
     return m.writeValueAsString(pd);
   }
 
   private static final class SimpleResponse implements HttpResponse<byte[]> {
     private final int status;
     private final byte[] body;
-    SimpleResponse(int status, byte[] body) { this.status = status; this.body = body; }
-    @Override public int statusCode() { return status; }
-    @Override public HttpRequest request() { return null; }
-    @Override public Optional<HttpResponse<byte[]>> previousResponse() { return Optional.empty(); }
-    @Override public java.net.http.HttpHeaders headers() { return java.net.http.HttpHeaders.of(java.util.Map.of(), (a,b)->true); }
-    @Override public byte[] body() { return body; }
-    @Override public Optional<SSLSession> sslSession() { return Optional.empty(); }
-    @Override public URI uri() { return URI.create("http://localhost"); }
-    @Override public java.net.http.HttpClient.Version version() { return java.net.http.HttpClient.Version.HTTP_1_1; }
+
+    SimpleResponse(int status, byte[] body) {
+      this.status = status;
+      this.body = body;
+    }
+
+    @Override
+    public int statusCode() {
+      return status;
+    }
+
+    @Override
+    public HttpRequest request() {
+      return null;
+    }
+
+    @Override
+    public Optional<HttpResponse<byte[]>> previousResponse() {
+      return Optional.empty();
+    }
+
+    @Override
+    public java.net.http.HttpHeaders headers() {
+      return java.net.http.HttpHeaders.of(java.util.Map.of(), (a, b) -> true);
+    }
+
+    @Override
+    public byte[] body() {
+      return body;
+    }
+
+    @Override
+    public Optional<SSLSession> sslSession() {
+      return Optional.empty();
+    }
+
+    @Override
+    public URI uri() {
+      return URI.create("http://localhost");
+    }
+
+    @Override
+    public java.net.http.HttpClient.Version version() {
+      return java.net.http.HttpClient.Version.HTTP_1_1;
+    }
   }
 
   private static final class CapturingClient {
     HttpRequest captured;
     HttpResponse<byte[]> response;
+
     CapturingClient(int status, String body) {
       this.response = new SimpleResponse(status, body.getBytes());
     }
