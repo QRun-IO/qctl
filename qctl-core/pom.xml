@@ -78,6 +78,24 @@
       <plugins>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.3.1</version>
+            <configuration>
+               <toolVersion>${checkstyle.version}</toolVersion>
+               <configLocation>codestyle/checkstyle.config.xml</configLocation>
+               <failOnViolation>true</failOnViolation>
+            </configuration>
+            <!-- (Optional but bullet-proof) also pin the dependency: -->
+            <dependencies>
+               <dependency>
+                  <groupId>com.puppycrawl.tools</groupId>
+                  <artifactId>checkstyle</artifactId>
+                  <version>${checkstyle.version}</version>
+               </dependency>
+            </dependencies>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
                <annotationProcessorPaths>

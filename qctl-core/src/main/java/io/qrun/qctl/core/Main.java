@@ -8,7 +8,7 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
-*/
+ */
 
 package io.qrun.qctl.core;
 
@@ -24,6 +24,9 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
 
+/**
+ * qctl entrypoint: registers subcommands via SPI and executes.
+ */
 @Command(
    name = "qctl",
    mixinStandardHelpOptions = true,
@@ -63,6 +66,7 @@ public class Main implements Runnable
 
 
 
+   /** Launches the CLI. */
    public static void main(String[] args)
    {
       CommandLine cmd = new CommandLine(new Main());
@@ -82,6 +86,7 @@ public class Main implements Runnable
 
 
 
+   /** Prints a hint when no subcommand is provided. */
    @Override
    public void run()
    {

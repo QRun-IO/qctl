@@ -88,3 +88,50 @@ Acceptance criteria
 - qbit resolver skeleton reads lockfile and prints summary in hermetic mode
 
 If something is ambiguous, consult DESIGN-2.md first, then CODEGEN-LOCKS-V1.md, and leave clear TODOs in tests (not code) where external services would be needed.
+
+---
+
+Session continuation notes (progress and next steps)
+
+Summary of work completed
+- Output integration: `qrun status` respects `--output json` via `qctl-core` `Output`.
+- Tests added:
+  - `qctl-qrun`: status renderer (text/json).
+  - `qctl-core`: `ApiClientTest` (header provider injection; HTTP→exit code mapping without mocking JDK types).
+  - `qctl-core`: `CachePruneCommandTest` (`parseSize` units, invalid inputs, no-op prune).
+- qrun mock flows:
+  - `qrun package`: writes dummy artifact manifest to `target/`.
+  - `qrun publish`: POSTs to mock API with `Idempotency-Key`, handles 201/200.
+- qbit resolver basics:
+  - `qbit resolve`: hermetic lockfile reading and summary; tests included.
+- Auth:
+  - `whoami`: prints `api-key: set|not set` per V1.
+
+Coding standards & build
+- Kingsrook style enforced:
+  - Checkstyle (validate) uses `codestyle/checkstyle.config.xml`, warnings are errors.
+  - Spotless enforces license headers (Java/XML/YAML/Properties) and import cleanup.
+- `codestyle/license.txt` is the source license header; equivalents for XML/hash comments exist.
+
+Current state
+- `qctl-shared`: headers/spacing normalized; passes style checks.
+- `qctl-core`: large cleanup done (headers, Javadoc, braces) in `EnvOverlay`, `JsonMerge`, `TokenStore`, `Output`, cache commands, `SystemPaths`, `Main`.
+- Focus file: `qctl-core/src/main/java/io/qrun/qctl/core/http/ApiClient.java` — remaining Checkstyle items to fix:
+  - LeftCurly on constructor call formatting; throws indentation alignment.
+  - NeedBraces in any remaining branches.
+  - Replace magic numbers with constants:
+    - Retry/backoff: `RETRY_BASE_MS=250L`, `RETRY_MAX_SLEEP_MS=5000L`, `BACKOFF_FACTOR=1.7D`, `JITTER_MAX=100D`.
+    - HTTP statuses: introduce local constants or a small mapping helper to satisfy MagicNumberCheck.
+  - Ensure public/protected methods have Javadoc.
+- Tests: if MagicNumberCheck applies, add local constants for status codes and expand any single-line Javadocs to multi-line.
+
+Next steps for the new agent
+1) Complete `ApiClient.java` constants, braces, LeftCurly, throws indentation, and Javadocs. Re-run:
+   - `mvn -q -DskipTests -pl qctl-core -am verify`
+2) Address any residual core warnings from `qctl-core/target/checkstyle-result.xml` (e.g., header closers `*/`, EmptyLineSeparator, package-info).
+3) Ensure tests conform (Javadoc, brace placement, magic numbers if enforced).
+4) When core is clean, run `mvn clean verify` for the full reactor.
+
+Notes
+- Stay within V1 scope; no new deps; follow CODEGEN-LOCKS-V1.md.
+- Logs on stderr, results on stdout; make outputs deterministic for tests.

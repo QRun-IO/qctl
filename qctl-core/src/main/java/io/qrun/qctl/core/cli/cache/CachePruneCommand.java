@@ -8,7 +8,7 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
-*/
+ */
 
 package io.qrun.qctl.core.cli.cache;
 
@@ -28,6 +28,9 @@ import picocli.CommandLine.Option;
 @Command(name = "prune", description = "Prune cache to target size")
 public class CachePruneCommand implements Runnable
 {
+   private static final long BYTES_PER_KB = 1024L;
+   private static final long BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
+   private static final long BYTES_PER_GB = BYTES_PER_MB * BYTES_PER_KB;
    // For tests, allow overriding cache root
    final java.nio.file.Path rootOverride;
    @Option(names = "--max-size", required = true, description = "Target size, e.g., 500MB")
@@ -63,17 +66,17 @@ public class CachePruneCommand implements Runnable
       long   mul = 1;
       if(t.endsWith("KB"))
       {
-         mul = 1024;
+         mul = BYTES_PER_KB;
          t = t.substring(0, t.length() - 2);
       }
       else if(t.endsWith("MB"))
       {
-         mul = 1024 * 1024;
+         mul = BYTES_PER_MB;
          t = t.substring(0, t.length() - 2);
       }
       else if(t.endsWith("GB"))
       {
-         mul = 1024L * 1024L * 1024L;
+         mul = BYTES_PER_GB;
          t = t.substring(0, t.length() - 2);
       }
       else if(t.endsWith("B"))

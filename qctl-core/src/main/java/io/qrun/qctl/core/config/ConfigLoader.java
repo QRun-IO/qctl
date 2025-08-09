@@ -8,7 +8,7 @@
  *
  * The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
  * for any purpose other than the purpose for which they were provided to you.
-*/
+ */
 
 package io.qrun.qctl.core.config;
 
@@ -28,9 +28,9 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 
 
-/***************************************************************************
- **
- ***************************************************************************/
+/**
+ * Loads qctl configuration from defaults, project file, and environment, then validates it.
+ */
 public final class ConfigLoader
 {
    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
@@ -38,9 +38,16 @@ public final class ConfigLoader
 
 
 
-   /***************************************************************************
-    **
-    ***************************************************************************/
+   /**
+    * Loads configuration and validates it against the embedded JSON Schema.
+    *
+    * @param projectConfig
+    *    path to project-level qctl.yaml
+    * @param env
+    *    process environment variables
+    *
+    * @return merged and validated configuration
+    */
    public static JsonNode loadAndValidate(Path projectConfig, Map<String, String> env) throws IOException
    {
       JsonNode merged = mergeDefaults(projectConfig, env);
@@ -51,7 +58,7 @@ public final class ConfigLoader
 
 
    /***************************************************************************
-    **
+    ** Merges built-in defaults, project file (if present), and environment overlay.
     ***************************************************************************/
    private static JsonNode mergeDefaults(Path projectConfig, Map<String, String> env) throws IOException
    {
@@ -66,9 +73,7 @@ public final class ConfigLoader
 
 
 
-   /***************************************************************************
-    **
-    ***************************************************************************/
+   /** Validates the merged configuration against the embedded JSON Schema. */
    private static void validateAgainstSchema(JsonNode node) throws IOException
    {
       try(InputStream in = ConfigLoader.class.getResourceAsStream("/schema/qctl-config-v1.json"))
