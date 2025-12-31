@@ -11,15 +11,38 @@ brew tap QRun-IO/qctl
 brew install qctl
 ```
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add qrun https://github.com/QRun-IO/qctl
+scoop install qctl
+```
+
+### AUR (Arch Linux)
+
+```bash
+yay -S qctl-bin
+```
+
+### Docker
+
+```bash
+docker run --rm ghcr.io/qrun-io/qctl:latest --help
+
+# Mount current directory for project scaffolding
+docker run --rm -v $(pwd):/work -w /work ghcr.io/qrun-io/qctl:latest qqq init new-qqq-application my-app
+```
+
 ### Pre-built Binaries
 
-Download the latest release for your platform from [Releases](https://github.com/QRun-IO/qctl/releases):
+Download from [Releases](https://github.com/QRun-IO/qctl/releases):
 
 | Platform | Binary |
 |----------|--------|
-| Linux (x64) | `qctl-linux-amd64` |
-| macOS (Intel) | `qctl-macos-amd64` |
-| macOS (Apple Silicon) | `qctl-macos-arm64` |
+| Linux x64 | `qctl-linux-amd64` |
+| Linux ARM64 | `qctl-linux-arm64` |
+| macOS Intel | `qctl-macos-amd64` |
+| macOS Apple Silicon | `qctl-macos-arm64` |
 | Windows | `qctl-windows-amd64.exe` |
 
 ```bash

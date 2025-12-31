@@ -26,6 +26,8 @@ class Qctl < Formula
     end
   end
 
+  depends_on "git" => :recommended
+
   def install
     binary = Dir["qctl*"].first
     bin.install binary => "qctl"
