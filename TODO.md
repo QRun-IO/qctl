@@ -22,17 +22,24 @@
 - [x] Fix Handlebars native image resource loading
 - [x] Remove native profile from qctl-core (only qctl-cli builds)
 
-### Phase 3: CI/CD
+### Phase 3: CI/CD & Distribution
 - [x] Create GitHub Actions workflow for multi-platform builds
-- [x] Create README.md
-
-## In Progress
-
-### Native Image Builds
-- [ ] Verify GitHub Actions builds complete successfully
-- [ ] Test release workflow with a tag
+- [x] Add Linux ARM64 build target
+- [x] Fix macOS runner (macos-13 deprecated, use macos-15)
+- [x] Add Homebrew formula with auto-update
+- [x] Add Scoop manifest for Windows
+- [x] Add AUR PKGBUILD for Arch Linux
+- [x] Add Dockerfile for container distribution
+- [x] Add Docker build/push to GHCR in workflow
+- [x] Create comprehensive README
+- [x] Verify GitHub Actions builds pass
 
 ## Pending
+
+### Release
+- [ ] Create first release (v0.1.0)
+- [ ] Verify all distribution channels work
+- [ ] Publish AUR package to aur.archlinux.org
 
 ### Template System Enhancements
 - [ ] Add template versioning (semver tags)
@@ -72,14 +79,42 @@
 - [ ] Add shell completion scripts (bash, zsh, fish)
 - [ ] Add examples directory with sample templates
 
+## Distribution Channels
+
+| Channel | Install Command | Manifest |
+|---------|-----------------|----------|
+| Homebrew | `brew tap QRun-IO/qctl && brew install qctl` | `HomebrewFormula/qctl.rb` |
+| Scoop | `scoop bucket add qrun https://github.com/QRun-IO/qctl && scoop install qctl` | `scoop/qctl.json` |
+| AUR | `yay -S qctl-bin` | `aur/PKGBUILD` |
+| Docker | `docker run ghcr.io/qrun-io/qctl` | `Dockerfile` |
+| GitHub | Download from Releases | `.github/workflows/build.yml` |
+
+## Supported Platforms
+
+| Platform | Architecture | Artifact |
+|----------|--------------|----------|
+| Linux | x64 | `qctl-linux-amd64` |
+| Linux | ARM64 | `qctl-linux-arm64` |
+| macOS | Intel | `qctl-macos-amd64` |
+| macOS | Apple Silicon | `qctl-macos-arm64` |
+| Windows | x64 | `qctl-windows-amd64.exe` |
+
 ## Notes
 
 ### Native Image Requirements
 - GraalVM 21+ required
-- Handlebars requires runtime initialization for DefaultHelperRegistry
+- Only `qctl-cli` module has native profile
+- Handlebars requires `--initialize-at-run-time=com.github.jknack.handlebars.helper.DefaultHelperRegistry`
 - Jackson requires reflection config for record types
 
 ### Templates Hub
 - Central registry: https://github.com/QRun-IO/templates-hub
 - Templates defined in `templates.yaml`
 - Each template references a git repo with Handlebars templates
+
+### Release Process
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+This triggers GitHub Actions to build, release, and update all package manifests.

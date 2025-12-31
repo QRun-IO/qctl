@@ -15,12 +15,6 @@ mvn clean verify
 # Fast compile (skip tests)
 mvn compile -DskipTests
 
-# Run single test class
-mvn test -pl qctl-core -Dtest=ConfigLoaderTest
-
-# Run single test method
-mvn test -pl qctl-core -Dtest=ConfigLoaderTest#loads_defaults_when_no_file
-
 # Checkstyle only
 mvn checkstyle:check
 
@@ -29,34 +23,33 @@ mvn spotless:check
 mvn spotless:apply
 
 # Native build (requires GraalVM 21)
-./scripts/build-native.sh
-# or manually:
-mvn -Pnative -DskipTests -pl qctl-cli -am package
+JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean package -DskipTests -Pnative
+
+# Output: qctl-cli/target/qctl
 ```
 
 ## Module Structure
 
 ```
 qctl-parent (reactor)
-├── qctl-shared     # DTOs, SemVer, SPI interfaces, utilities
+├── qctl-shared     # DTOs, ExitCodes, SPI interfaces, utilities
 ├── qctl-core       # Config, HTTP client, auth, cache, logging, Main entrypoint
-├── qctl-qqq        # Template scaffolding commands
+├── qctl-qqq        # Template scaffolding (init, list) with Handlebars
 ├── qctl-qbit       # Package management commands, lockfile handling
 ├── qctl-qrun       # OCI packaging and deployment commands
 ├── qctl-qstudio    # AI planning commands (offline V1)
-├── qctl-cli        # Aggregator for native image build
-└── qctl-integration-tests  # Golden tests, contract tests with Prism mock
+└── qctl-cli        # Aggregator for native image build (only module with native profile)
 ```
 
 ## Architecture
 
-**Plugin System**: Commands are discovered via `ServiceLoader<CommandPlugin>`. Each feature module (qctl-qqq, qctl-qbit, etc.) implements `CommandPlugin` in `qctl-shared/spi/` and registers via `META-INF/services`.
+**Plugin System**: Commands discovered via `ServiceLoader<CommandPlugin>`. Each module implements `CommandPlugin` and registers via `META-INF/services`.
 
-**CLI Framework**: Picocli with annotation-based command definitions. Main entrypoint in `qctl-core/Main.java` registers core commands and discovers plugins.
+**CLI Framework**: Picocli with annotation-based commands. Main entrypoint in `qctl-core/Main.java`.
 
-**Config System**: YAML config loaded from OS-specific paths, merged with env vars (`QCTL_*` prefix) and CLI flags. JSON Schema validation via networknt. Precedence: built-in < global < project < env < flags.
+**Template System**: Templates fetched from [QRun-IO/templates-hub](https://github.com/QRun-IO/templates-hub). Handlebars for rendering with custom helpers (camelCase, pascalCase, etc.).
 
-**HTTP Layer**: JDK HttpClient with retry/backoff for 429/5xx. RFC 7807 ProblemDetail error handling.
+**Native Image**: GraalVM 21 with reflection config for Jackson records and Handlebars resources.
 
 ## Code Style
 
@@ -64,15 +57,12 @@ qctl-parent (reactor)
 - **Braces on new line** (`LeftCurly: nl`)
 - **Javadoc required** on all methods (flowerbox style)
 - **No star imports**
-- **Import order**: javax, java, third-party, static (alphabetical within groups)
-- **License header** required on all Java files
+- **Import order**: javax, java, third-party, static (alphabetical)
 
-Flowerbox Javadoc format:
+Flowerbox Javadoc:
 ```java
 /***************************************************************************
- * Brief description of what this method does.
- *
- * Why: Explain the rationale or context.
+ * Brief description.
  *
  * @param foo description
  * @return description
@@ -82,28 +72,36 @@ Flowerbox Javadoc format:
 
 ## Key Patterns
 
-**Exit Codes**: 0=success, 1=generic, 2=usage/config, 3=network, 4=auth, 5=not found, 6=validation, 7=integrity, 8=conflict, 9=cancelled
-
-**Lockfile** (`qbits.lock`): JSON with `lockfileVersion: 1`, `generatedAt`, `packages` map. Atomic writes via temp file + `Files.move(ATOMIC_MOVE)`.
+**Exit Codes** (`qctl-shared/ExitCodes.java`):
+- 0=success, 1=generic, 2=usage, 3=network, 4=auth, 5=not found, 6=validation, 7=integrity, 8=conflict, 9=cancelled
 
 **Config Paths**:
 - macOS: `~/Library/Application Support/qctl/qctl.yaml`
 - Linux: `$XDG_CONFIG_HOME/qctl/qctl.yaml`
 - Windows: `%APPDATA%\qctl\qctl.yaml`
 
+## Distribution
+
+On tagged release (`git tag v1.0.0 && git push origin v1.0.0`):
+
+| Channel | Location | Auto-Updated |
+|---------|----------|--------------|
+| Homebrew | `HomebrewFormula/qctl.rb` | Yes |
+| Scoop | `scoop/qctl.json` | Yes |
+| AUR | `aur/PKGBUILD` | Yes |
+| Docker | `ghcr.io/qrun-io/qctl` | Yes |
+| GitHub | Releases | Yes |
+
+**Platforms**: Linux (x64, ARM64), macOS (Intel, Apple Silicon), Windows (x64)
+
+## Native Image Notes
+
+- Only `qctl-cli` builds native image (other modules removed native profile)
+- Handlebars requires `--initialize-at-run-time=com.github.jknack.handlebars.helper.DefaultHelperRegistry`
+- Jackson records need reflection config in `META-INF/native-image/reflect-config.json`
+- Resources config in `META-INF/native-image/resource-config.json`
+
 ## Testing
 
 - JUnit 5 + AssertJ + Mockito
-- Testcontainers for integration tests
-- Golden tests: snapshots in `qctl-integration-tests/src/test/resources/golden/`
-- Update golden files: `mvn test -Dgolden.update=true`
-- Contract tests run against Prism mock on port 4010
-
-## Dependencies
-
-Key versions (see `pom.xml` properties):
-- Java 21 (Temurin)
-- Picocli 4.7.5
-- Jackson 2.17.1
-- SLF4J 2.0.13 / Logback 1.5.13
-- json-schema-validator 1.4.1
+- Run: `mvn test` or `mvn verify`
