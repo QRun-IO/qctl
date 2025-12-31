@@ -32,24 +32,20 @@ jobs:
 
   build-native:
     needs: test
+    if: github.event_name == 'push'
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             artifact: qctl-linux-amd64
-            arch: amd64
           - os: ubuntu-24.04-arm
             artifact: qctl-linux-arm64
-            arch: arm64
-          - os: macos-15
+          - os: macos-13
             artifact: qctl-macos-amd64
-            arch: amd64
           - os: macos-14
             artifact: qctl-macos-arm64
-            arch: arm64
           - os: windows-latest
             artifact: qctl-windows-amd64.exe
-            arch: amd64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -97,10 +93,16 @@ jobs:
         with:
           path: artifacts
 
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find artifacts -type f -exec mv {} release/ \;
+          ls -la release/
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: release/*
           generate_release_notes: true
 
   docker:
@@ -113,19 +115,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Linux artifacts
+      - name: Download Linux AMD64 artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: qctl-linux-*
+          name: qctl-linux-amd64
           path: .
-          merge-multiple: true
+
+      - name: Download Linux ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qctl-linux-arm64
+          path: .
 
       - name: Prepare binaries
         run: |
-          mv qctl-linux-amd64/qctl-linux-amd64 qctl-linux-amd64.bin
-          mv qctl-linux-arm64/qctl-linux-arm64 qctl-linux-arm64.bin
-          mv qctl-linux-amd64.bin qctl-linux-amd64
-          mv qctl-linux-arm64.bin qctl-linux-arm64
+          chmod +x qctl-linux-amd64 qctl-linux-arm64
+          # Dockerfile expects qctl-linux-amd64 and qctl-linux-arm64
+          ls -la qctl-linux-*
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -148,23 +154,24 @@ jobs:
             ghcr.io/qrun-io/qctl:${{ github.ref_name }}
             ghcr.io/qrun-io/qctl:latest
 
-  update-packages:
+  update-homebrew:
     needs: release
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: develop
-
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Update package manifests
+      - name: Checkout homebrew-qctl tap
+        uses: actions/checkout@v4
+        with:
+          repository: QRun-IO/homebrew-qctl
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Homebrew formula
         env:
           VERSION: ${{ github.ref_name }}
         run: |
@@ -172,30 +179,124 @@ jobs:
 
           SHA_MACOS_ARM64=$(shasum -a 256 artifacts/qctl-macos-arm64/qctl-macos-arm64 | cut -d' ' -f1)
           SHA_MACOS_AMD64=$(shasum -a 256 artifacts/qctl-macos-amd64/qctl-macos-amd64 | cut -d' ' -f1)
-          SHA_LINUX_AMD64=$(shasum -a 256 artifacts/qctl-linux-amd64/qctl-linux-amd64 | cut -d' ' -f1)
           SHA_LINUX_ARM64=$(shasum -a 256 artifacts/qctl-linux-arm64/qctl-linux-arm64 | cut -d' ' -f1)
-          SHA_WINDOWS=$(shasum -a 256 artifacts/qctl-windows-amd64.exe/qctl-windows-amd64.exe | cut -d' ' -f1)
+          SHA_LINUX_AMD64=$(shasum -a 256 artifacts/qctl-linux-amd64/qctl-linux-amd64 | cut -d' ' -f1)
 
-          # Update Homebrew
-          sed -i "s/version \".*\"/version \"${VERSION}\"/" packaging/homebrew/qctl.rb
-          sed -i "s/PLACEHOLDER_ARM64_SHA256/${SHA_MACOS_ARM64}/" packaging/homebrew/qctl.rb
-          sed -i "s/PLACEHOLDER_AMD64_SHA256/${SHA_MACOS_AMD64}/" packaging/homebrew/qctl.rb
-          sed -i "s/PLACEHOLDER_LINUX_AMD64_SHA256/${SHA_LINUX_AMD64}/" packaging/homebrew/qctl.rb
-          sed -i "s/PLACEHOLDER_LINUX_ARM64_SHA256/${SHA_LINUX_ARM64}/" packaging/homebrew/qctl.rb
+          FORMULA="homebrew-tap/Formula/qctl.rb"
 
-          # Update Scoop
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" packaging/scoop/qctl.json
-          sed -i "s|/v[0-9.]*\/|/v${VERSION}/|g" packaging/scoop/qctl.json
-          sed -i "s/PLACEHOLDER_WINDOWS_SHA256/${SHA_WINDOWS}/" packaging/scoop/qctl.json
+          # Update version
+          sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA"
 
-          # Update AUR
-          sed -i "s/pkgver=.*/pkgver=${VERSION}/" packaging/aur/PKGBUILD
-          sed -i "s/PLACEHOLDER_LINUX_SHA256/${SHA_LINUX_AMD64}/" packaging/aur/PKGBUILD
+          # Update SHA256 hashes in order: macos-arm64, macos-amd64, linux-arm64, linux-amd64
+          awk -v v1="$SHA_MACOS_ARM64" -v v2="$SHA_MACOS_AMD64" -v v3="$SHA_LINUX_ARM64" -v v4="$SHA_LINUX_AMD64" '
+            BEGIN { n = 0 }
+            /sha256/ {
+              n++
+              if (n == 1) sub(/sha256 "[^"]*"/, "sha256 \"" v1 "\"")
+              else if (n == 2) sub(/sha256 "[^"]*"/, "sha256 \"" v2 "\"")
+              else if (n == 3) sub(/sha256 "[^"]*"/, "sha256 \"" v3 "\"")
+              else if (n == 4) sub(/sha256 "[^"]*"/, "sha256 \"" v4 "\"")
+            }
+            { print }
+          ' "$FORMULA" > "$FORMULA.tmp" && mv "$FORMULA.tmp" "$FORMULA"
 
-      - name: Commit package updates
+      - name: Commit and push
         run: |
+          cd homebrew-tap
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packaging/homebrew/qctl.rb packaging/scoop/qctl.json packaging/aur/PKGBUILD
-          git commit -m "chore(packages): update manifests to ${GITHUB_REF_NAME}"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/qctl.rb
+          git diff --staged --quiet || git commit -m "Update qctl to ${GITHUB_REF_NAME}"
           git push
+
+  update-scoop:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qctl-windows-amd64.exe
+          path: artifacts
+
+      - name: Update Scoop manifest
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION#v}"
+          SHA_WINDOWS=$(shasum -a 256 artifacts/qctl-windows-amd64.exe | cut -d' ' -f1)
+
+          MANIFEST="packaging/scoop/qctl.json"
+
+          # Update version
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$MANIFEST"
+
+          # Update download URL version
+          sed -i "s|/download/v[^/]*/|/download/v${VERSION}/|g" "$MANIFEST"
+
+          # Update hash
+          sed -i "s/\"hash\": \"[^\"]*\"/\"hash\": \"${SHA_WINDOWS}\"/" "$MANIFEST"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(scoop): update manifest to ${{ github.ref_name }}"
+          title: "chore(scoop): update manifest to ${{ github.ref_name }}"
+          body: "Automated Scoop manifest update for release ${{ github.ref_name }}"
+          branch: chore/scoop-${{ github.ref_name }}
+          base: develop
+
+  update-aur:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Download Linux AMD64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qctl-linux-amd64
+          path: artifacts
+
+      - name: Update AUR PKGBUILD
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION#v}"
+          SHA_LINUX=$(shasum -a 256 artifacts/qctl-linux-amd64 | cut -d' ' -f1)
+
+          PKGBUILD="packaging/aur/PKGBUILD"
+
+          # Update version
+          sed -i "s/pkgver=.*/pkgver=${VERSION}/" "$PKGBUILD"
+
+          # Reset pkgrel for new version
+          sed -i "s/pkgrel=.*/pkgrel=1/" "$PKGBUILD"
+
+          # Update hash
+          sed -i "s/sha256sums_x86_64=('[^']*')/sha256sums_x86_64=('${SHA_LINUX}')/" "$PKGBUILD"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(aur): update PKGBUILD to ${{ github.ref_name }}"
+          title: "chore(aur): update PKGBUILD to ${{ github.ref_name }}"
+          body: "Automated AUR PKGBUILD update for release ${{ github.ref_name }}"
+          branch: chore/aur-${{ github.ref_name }}
+          base: develop
