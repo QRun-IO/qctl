@@ -17,7 +17,10 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(unzip:*)",
-      "Bash(/Users/james.maes/Git.Local/QRunIO/qctl/qctl-core/target/qctl:*)"
+      "Bash(/Users/james.maes/Git.Local/QRunIO/qctl/qctl-core/target/qctl:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn spotless:apply:*)"
     ]
   }
 }
