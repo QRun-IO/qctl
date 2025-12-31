@@ -34,7 +34,7 @@ import picocli.CommandLine.Spec;
 @Command(
    name = "qctl",
    mixinStandardHelpOptions = true,
-   version = { "qctl 0.1.0" },
+   versionProvider = VersionProvider.class,
    description = "qctl CLI",
    subcommands = {
       HelpCommand.class,
