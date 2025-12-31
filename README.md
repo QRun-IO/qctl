@@ -170,6 +170,42 @@ mvn clean package -DskipTests
 java -jar qctl-cli/target/qctl-cli-0.1.0-SNAPSHOT.jar --help
 ```
 
+## Releasing
+
+Create a tagged release to trigger the full CI/CD pipeline:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This automatically:
+1. Runs tests on Ubuntu
+2. Builds native binaries for all platforms
+3. Creates a GitHub Release with binaries attached
+4. Pushes Docker image to `ghcr.io/qrun-io/qctl`
+5. Updates package manifests (Homebrew, Scoop, AUR) with correct checksums
+
+### Distribution Channels
+
+| Channel | Package | Auto-Updated |
+|---------|---------|--------------|
+| Homebrew | `HomebrewFormula/qctl.rb` | Yes |
+| Scoop | `scoop/qctl.json` | Yes |
+| AUR | `aur/PKGBUILD` | Yes |
+| Docker | `ghcr.io/qrun-io/qctl` | Yes |
+| GitHub | Releases page | Yes |
+
+### Supported Platforms
+
+| Platform | Architecture | Binary |
+|----------|--------------|--------|
+| Linux | x64 | `qctl-linux-amd64` |
+| Linux | ARM64 | `qctl-linux-arm64` |
+| macOS | Intel | `qctl-macos-amd64` |
+| macOS | Apple Silicon | `qctl-macos-arm64` |
+| Windows | x64 | `qctl-windows-amd64.exe` |
+
 ## License
 
 AGPL-3.0 - See [LICENSE](LICENSE) for details.
