@@ -28,7 +28,28 @@
       "Bash(gh issue create:*)",
       "Bash(gh issue list:*)",
       "Bash(gh api:*)",
-      "Bash(gh issue edit:*)"
+      "Bash(gh issue edit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git branch:*)",
+      "Bash(git tag:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean compile:*)",
+      "Bash(gh release view:*)",
+      "Bash(gh release download:*)",
+      "Bash(shasum:*)",
+      "Bash(brew untap:*)",
+      "Bash(brew tap:*)",
+      "Bash(brew install:*)",
+      "Bash(qctl:*)",
+      "Bash(qctl --help:*)",
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(gh secret list:*)",
+      "Bash(gh secret set:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

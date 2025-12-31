@@ -245,6 +245,9 @@ jobs:
           # Update hash
           sed -i "s/\"hash\": \"[^\"]*\"/\"hash\": \"${SHA_WINDOWS}\"/" "$MANIFEST"
 
+      - name: Clean up artifacts
+        run: rm -rf artifacts
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
@@ -254,6 +257,7 @@ jobs:
           body: "Automated Scoop manifest update for release ${{ github.ref_name }}"
           branch: chore/scoop-${{ github.ref_name }}
           base: develop
+          add-paths: packaging/scoop/qctl.json
 
   update-aur:
     needs: release
@@ -291,6 +295,9 @@ jobs:
           # Update hash
           sed -i "s/sha256sums_x86_64=('[^']*')/sha256sums_x86_64=('${SHA_LINUX}')/" "$PKGBUILD"
 
+      - name: Clean up artifacts
+        run: rm -rf artifacts
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
@@ -300,3 +307,4 @@ jobs:
           body: "Automated AUR PKGBUILD update for release ${{ github.ref_name }}"
           branch: chore/aur-${{ github.ref_name }}
           base: develop
+          add-paths: packaging/aur/PKGBUILD
