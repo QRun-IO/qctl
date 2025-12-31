@@ -34,14 +34,17 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn cle
 ## Module Structure
 
 ```
-qctl-parent (reactor)
+qctl/
 ├── qctl-shared     # DTOs, ExitCodes, SPI interfaces, utilities
 ├── qctl-core       # Config, HTTP client, auth, cache, logging, Main entrypoint
 ├── qctl-qqq        # Template scaffolding (init, list) with Handlebars
 ├── qctl-qbit       # Package management commands, lockfile handling
 ├── qctl-qrun       # OCI packaging and deployment commands
 ├── qctl-qstudio    # AI planning commands (offline V1)
-└── qctl-cli        # Aggregator for native image build (only module with native profile)
+├── qctl-cli        # Aggregator for native image build (only module with native profile)
+├── docs/           # Architecture and design documentation
+├── packaging/      # Distribution manifests (Homebrew, Scoop, AUR, Docker)
+└── codestyle/      # Checkstyle config and license headers
 ```
 
 ## Architecture
@@ -93,10 +96,10 @@ On tagged release (`git tag v1.0.0 && git push origin v1.0.0`):
 
 | Channel | Location | Auto-Updated |
 |---------|----------|--------------|
-| Homebrew | `HomebrewFormula/qctl.rb` | Yes |
-| Scoop | `scoop/qctl.json` | Yes |
-| AUR | `aur/PKGBUILD` | Yes |
-| Docker | `ghcr.io/qrun-io/qctl` | Yes |
+| Homebrew | `packaging/homebrew/qctl.rb` | Yes |
+| Scoop | `packaging/scoop/qctl.json` | Yes |
+| AUR | `packaging/aur/PKGBUILD` | Yes |
+| Docker | `packaging/docker/Dockerfile` | Yes |
 | GitHub | Releases | Yes |
 
 **Platforms**: Linux (x64, ARM64), macOS (Intel, Apple Silicon), Windows (x64)

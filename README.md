@@ -153,7 +153,10 @@ qctl/
 ├── qctl-qqq/       # Scaffolding commands (init, list)
 ├── qctl-qbit/      # Package management commands
 ├── qctl-qrun/      # Deployment commands
-└── qctl-qstudio/   # Planning commands
+├── qctl-qstudio/   # Planning commands
+├── docs/           # Architecture and design documentation
+├── packaging/      # Distribution manifests (Homebrew, Scoop, AUR, Docker)
+└── codestyle/      # Checkstyle config and license headers
 ```
 
 ## Development
@@ -190,10 +193,10 @@ This automatically:
 
 | Channel | Package | Auto-Updated |
 |---------|---------|--------------|
-| Homebrew | `HomebrewFormula/qctl.rb` | Yes |
-| Scoop | `scoop/qctl.json` | Yes |
-| AUR | `aur/PKGBUILD` | Yes |
-| Docker | `ghcr.io/qrun-io/qctl` | Yes |
+| Homebrew | `packaging/homebrew/qctl.rb` | Yes |
+| Scoop | `packaging/scoop/qctl.json` | Yes |
+| AUR | `packaging/aur/PKGBUILD` | Yes |
+| Docker | `packaging/docker/Dockerfile` | Yes |
 | GitHub | Releases page | Yes |
 
 ### Supported Platforms

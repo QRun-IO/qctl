@@ -20,7 +20,15 @@
       "Bash(/Users/james.maes/Git.Local/QRunIO/qctl/qctl-core/target/qctl:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn spotless:apply:*)"
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn spotless:apply:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(gh label list:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh api:*)",
+      "Bash(gh issue edit:*)"
     ]
   }
 }

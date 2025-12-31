@@ -141,6 +141,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: packaging/docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -176,25 +177,25 @@ jobs:
           SHA_WINDOWS=$(shasum -a 256 artifacts/qctl-windows-amd64.exe/qctl-windows-amd64.exe | cut -d' ' -f1)
 
           # Update Homebrew
-          sed -i "s/version \".*\"/version \"${VERSION}\"/" HomebrewFormula/qctl.rb
-          sed -i "s/PLACEHOLDER_ARM64_SHA256/${SHA_MACOS_ARM64}/" HomebrewFormula/qctl.rb
-          sed -i "s/PLACEHOLDER_AMD64_SHA256/${SHA_MACOS_AMD64}/" HomebrewFormula/qctl.rb
-          sed -i "s/PLACEHOLDER_LINUX_AMD64_SHA256/${SHA_LINUX_AMD64}/" HomebrewFormula/qctl.rb
-          sed -i "s/PLACEHOLDER_LINUX_ARM64_SHA256/${SHA_LINUX_ARM64}/" HomebrewFormula/qctl.rb
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" packaging/homebrew/qctl.rb
+          sed -i "s/PLACEHOLDER_ARM64_SHA256/${SHA_MACOS_ARM64}/" packaging/homebrew/qctl.rb
+          sed -i "s/PLACEHOLDER_AMD64_SHA256/${SHA_MACOS_AMD64}/" packaging/homebrew/qctl.rb
+          sed -i "s/PLACEHOLDER_LINUX_AMD64_SHA256/${SHA_LINUX_AMD64}/" packaging/homebrew/qctl.rb
+          sed -i "s/PLACEHOLDER_LINUX_ARM64_SHA256/${SHA_LINUX_ARM64}/" packaging/homebrew/qctl.rb
 
           # Update Scoop
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" scoop/qctl.json
-          sed -i "s|/v[0-9.]*\/|/v${VERSION}/|g" scoop/qctl.json
-          sed -i "s/PLACEHOLDER_WINDOWS_SHA256/${SHA_WINDOWS}/" scoop/qctl.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" packaging/scoop/qctl.json
+          sed -i "s|/v[0-9.]*\/|/v${VERSION}/|g" packaging/scoop/qctl.json
+          sed -i "s/PLACEHOLDER_WINDOWS_SHA256/${SHA_WINDOWS}/" packaging/scoop/qctl.json
 
           # Update AUR
-          sed -i "s/pkgver=.*/pkgver=${VERSION}/" aur/PKGBUILD
-          sed -i "s/PLACEHOLDER_LINUX_SHA256/${SHA_LINUX_AMD64}/" aur/PKGBUILD
+          sed -i "s/pkgver=.*/pkgver=${VERSION}/" packaging/aur/PKGBUILD
+          sed -i "s/PLACEHOLDER_LINUX_SHA256/${SHA_LINUX_AMD64}/" packaging/aur/PKGBUILD
 
       - name: Commit package updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add HomebrewFormula/qctl.rb scoop/qctl.json aur/PKGBUILD
+          git add packaging/homebrew/qctl.rb packaging/scoop/qctl.json packaging/aur/PKGBUILD
           git commit -m "chore(packages): update manifests to ${GITHUB_REF_NAME}"
           git push
