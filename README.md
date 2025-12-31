@@ -4,6 +4,13 @@ Command-line interface for the QRun ecosystem. Scaffold QQQ applications, manage
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap QRun-IO/qctl
+brew install qctl
+```
+
 ### Pre-built Binaries
 
 Download the latest release for your platform from [Releases](https://github.com/QRun-IO/qctl/releases):
