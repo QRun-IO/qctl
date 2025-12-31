@@ -5,7 +5,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>io.qrun.qctl</groupId>
    <artifactId>qctl-parent</artifactId>
-   <version>0.1.0-SNAPSHOT</version>
+   <version>0.0.1</version>
    <packaging>pom</packaging>
    <name>qctl</name>
    <description>qctl CLI - multi-module project</description>
