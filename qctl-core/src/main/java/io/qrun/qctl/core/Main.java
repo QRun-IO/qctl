@@ -13,6 +13,7 @@
 package io.qrun.qctl.core;
 
 
+import io.qrun.qctl.shared.ExitCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -132,7 +133,7 @@ public class Main implements Runnable
       catch(Exception e)
       {
          log.error("Startup failed", e);
-         System.exit(2);
+         System.exit(ExitCodes.USAGE);
       }
    }
 }

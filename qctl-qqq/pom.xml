@@ -21,5 +21,44 @@
          <artifactId>qctl-core</artifactId>
          <version>${project.version}</version>
       </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-shared</artifactId>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>com.github.jknack</groupId>
+         <artifactId>handlebars</artifactId>
+         <version>4.4.0</version>
+         <exclusions>
+            <exclusion>
+               <groupId>org.openjdk.nashorn</groupId>
+               <artifactId>nashorn-core</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>info.picocli</groupId>
+         <artifactId>picocli-codegen</artifactId>
+         <version>${picocli.version}</version>
+         <scope>provided</scope>
+      </dependency>
    </dependencies>
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <annotationProcessorPaths>
+                  <path>
+                     <groupId>info.picocli</groupId>
+                     <artifactId>picocli-codegen</artifactId>
+                     <version>${picocli.version}</version>
+                  </path>
+               </annotationProcessorPaths>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
 </project>

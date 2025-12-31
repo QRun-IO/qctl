@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(mvn checkstyle:check:*)",
+      "Bash(mvn spotless:check:*)",
+      "Bash(xargs:*)",
+      "Bash(mvn clean verify:*)",
+      "Bash(/usr/libexec/java_home:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean verify:*)",
+      "Bash(/Users/james.maes/Git.Local/QRunIO/qctl/qctl-cli/target/qctl:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn compile:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn checkstyle:check:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean package:*)",
+      "Bash(git clone:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(unzip:*)",
+      "Bash(/Users/james.maes/Git.Local/QRunIO/qctl/qctl-core/target/qctl:*)"
+    ]
+  }
+}

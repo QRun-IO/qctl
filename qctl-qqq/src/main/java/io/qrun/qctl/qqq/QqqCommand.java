@@ -16,7 +16,11 @@ package io.qrun.qctl.qqq;
 import picocli.CommandLine.Command;
 
 
-@Command(name = "qqq", description = "Scaffolding commands", mixinStandardHelpOptions = true)
+@Command(
+   name = "qqq",
+   description = "Scaffolding commands",
+   mixinStandardHelpOptions = true,
+   subcommands = { InitCommand.class, ListCommand.class })
 public class QqqCommand implements Runnable
 {
    /***************************************************************************

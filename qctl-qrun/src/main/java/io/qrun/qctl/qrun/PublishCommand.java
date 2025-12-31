@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import io.qrun.qctl.core.http.ApiClient;
 import io.qrun.qctl.core.sys.SystemPaths;
+import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -105,7 +106,7 @@ public class PublishCommand implements Runnable
       catch(Exception e)
       {
          System.err.println("error: " + e.getMessage());
-         System.exit(1);
+         System.exit(ExitCodes.GENERIC);
       }
    }
 
