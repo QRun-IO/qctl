@@ -23,9 +23,12 @@ mvn spotless:check
 mvn spotless:apply
 
 # Native build (requires GraalVM 21)
-JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean package -DskipTests -Pnative
+JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn clean package -DskipTests
 
-# Output: qctl-cli/target/qctl
+# Output: qctl-cli/target/qctl (native profile is in qctl-cli pom.xml, not a -P flag)
+
+# Test version flag
+./qctl-cli/target/qctl --version
 ```
 
 ## Module Structure
@@ -48,6 +51,10 @@ qctl-parent (reactor)
 **CLI Framework**: Picocli with annotation-based commands. Main entrypoint in `qctl-core/Main.java`.
 
 **Template System**: Templates fetched from [QRun-IO/templates-hub](https://github.com/QRun-IO/templates-hub). Handlebars for rendering with custom helpers (camelCase, pascalCase, etc.).
+
+**Interactive Commands**: All console I/O goes through `ConsoleUI` class (`qctl-qqq/template/ConsoleUI.java`). This separates UI from logic. Commands use `ConsoleUI` for prompts, styled output, and selections.
+
+**Version Info**: `VersionProvider` reads from `version.properties` (Maven-filtered). Shows version, build timestamp, and git commit hash.
 
 **Native Image**: GraalVM 21 with reflection config for Jackson records and Handlebars resources.
 

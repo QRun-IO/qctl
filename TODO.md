@@ -34,6 +34,16 @@
 - [x] Create comprehensive README
 - [x] Verify GitHub Actions builds pass
 
+### Phase 4: Version & Interactive UX
+- [x] Implement --version flag with build metadata (VersionProvider)
+- [x] Add git-commit-id-maven-plugin for commit hash in version
+- [x] Add version provider to qqq subcommand
+- [x] Refactor init command to be interactive by default
+- [x] Create ConsoleUI class for centralized console I/O
+- [x] Update PromptRunner to use ConsoleUI
+- [x] Template name defaults to new-qqq-application
+- [x] Target directory prompts if not provided
+
 ## Pending
 
 ### Release
