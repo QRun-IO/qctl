@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import io.qrun.qctl.qqq.template.ConsoleUI;
 import io.qrun.qctl.qqq.template.PostGenHookRunner;
 import io.qrun.qctl.qqq.template.PromptRunner;
 import io.qrun.qctl.qqq.template.TemplateEngine;
@@ -39,26 +41,24 @@ import picocli.CommandLine.Parameters;
  *
  * @since 0.1.0
  *******************************************************************************/
-@Command(name = "init", description = "Initialize a new project from a template")
+@Command(name = "init", description = "Initialize a new project from a template",
+   mixinStandardHelpOptions = true)
 public class InitCommand implements Runnable
 {
-   /***************************************************************************
-    * Default constructor for picocli.
-    *
-    * @since 0.1.0
-    ***************************************************************************/
-   public InitCommand()
-   {
-   }
+   private static final String DEFAULT_TEMPLATE = "new-qqq-application";
+   private static final String DEFAULT_PROJECT_DIR = "my-qqq-app";
 
+   @Parameters(
+      index = "0",
+      arity = "0..1",
+      description = "Template name (default: ${DEFAULT-VALUE})",
+      defaultValue = DEFAULT_TEMPLATE)
+   String templateName;
 
-   @Parameters(index = "0", description = "Template ID or source (path, git URL, github.com/org/repo)")
-   String templateSource;
-
-   @Parameters(index = "1", description = "Target directory for the new project")
+   @Option(names = {"-o", "--output"}, description = "Target directory for the new project")
    Path targetDir;
 
-   @Option(names = "--version", description = "Template version (semver tag, e.g., 1.0.0)")
+   @Option(names = "--template-version", description = "Template version (semver tag)")
    String version;
 
    @Option(names = "--var", description = "Set a template variable (key=value)")
@@ -78,133 +78,53 @@ public class InitCommand implements Runnable
 
 
 
+   /***************************************************************************
+    * Default constructor for picocli.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
+   public InitCommand()
+   {
+   }
+
+
+
    @Override
    public void run()
    {
+      ConsoleUI ui = new ConsoleUI();
+
       try
       {
+         ui.header("qctl qqq init");
+         ui.subtitle("Initialize a new QQQ project");
+         ui.println();
+
+         // Step 1: Template selection
+         TemplatesHub hub = new TemplatesHub();
+         TemplatesHub.TemplateEntry hubEntry = selectTemplate(hub, ui);
+         TemplatesHub.TemplatesIndex index = hub.fetchIndex();
+         String gitSource = hubEntry.getGitUrl(index.registry());
+
+         // Step 2: Get target directory
+         Path effectiveTargetDir = getTargetDirectory(ui);
+
          // Check target directory
-         if(Files.exists(targetDir) && !force)
+         if(Files.exists(effectiveTargetDir) && !force)
          {
-            System.err.println("error: target directory already exists: " + targetDir);
-            System.err.println("Use --force to overwrite.");
+            ui.error("target directory already exists: " + effectiveTargetDir);
+            ui.println("Use --force to overwrite.");
             System.exit(ExitCodes.CONFLICT);
          }
 
-         // Try to find template in hub first (if source looks like an ID)
-         TemplatesHub.TemplateEntry hubEntry = null;
-         String                     gitSource = templateSource;
+         // Step 3: Resolve template
+         ui.println();
+         ui.info("Resolving template...");
+         TemplateResolver resolver = new TemplateResolver();
+         Path templatePath = resolver.resolve(gitSource, version);
 
-         if(isTemplateId(templateSource))
-         {
-            System.out.println("Looking up template: " + templateSource);
-            TemplatesHub                         hub   = new TemplatesHub();
-            Optional<TemplatesHub.TemplateEntry> entry = hub.findById(templateSource);
-
-            if(entry.isPresent())
-            {
-               hubEntry = entry.get();
-               TemplatesHub.TemplatesIndex index = hub.fetchIndex();
-               gitSource = hubEntry.getGitUrl(index.registry());
-               System.out.println("Found: " + hubEntry.name() + " v" + hubEntry.version());
-            }
-            else
-            {
-               System.err.println("error: template not found in hub: " + templateSource);
-               System.err.println("Use 'qctl qqq list' to see available templates.");
-               System.exit(ExitCodes.NOT_FOUND);
-            }
-         }
-
-         // Resolve template source
-         System.out.println("Resolving template: " + gitSource);
-         TemplateResolver resolver     = new TemplateResolver();
-         Path             templatePath = resolver.resolve(gitSource, version);
-
-         // Get manifest - from hub entry or file
-         TemplateManifest manifest = getManifest(templatePath, hubEntry);
-         System.out.println("Template: " + manifest.name() + " v" + manifest.version());
-
-         // Collect variables (prompts + CLI overrides)
-         Map<String, String> allVars = new LinkedHashMap<>();
-         if(!noPrompt && manifest.prompts() != null)
-         {
-            PromptRunner promptRunner = new PromptRunner();
-            allVars.putAll(promptRunner.run(manifest.prompts(), variables));
-         }
-         allVars.putAll(variables);
-
-         // Render templates
-         TemplateEngine engine = new TemplateEngine();
-         if(dryRun)
-         {
-            System.out.println("\n[DRY-RUN] Would create files:");
-            engine.renderDryRun(templatePath, targetDir, allVars, manifest);
-         }
-         else
-         {
-            if(force && Files.exists(targetDir))
-            {
-               System.out.println("Overwriting existing directory...");
-            }
-            Files.createDirectories(targetDir);
-            int fileCount = engine.render(templatePath, targetDir, allVars, manifest);
-            System.out.println("\nCreated " + fileCount + " files in " + targetDir);
-
-            // Run post-gen hooks
-            if(!skipHooks && manifest.postGen() != null)
-            {
-               PostGenHookRunner hookRunner = new PostGenHookRunner();
-               hookRunner.run(targetDir, manifest.postGen());
-            }
-         }
-
-         System.out.println("\nProject initialized successfully!");
-      }
-      catch(IOException e)
-      {
-         System.err.println("error: " + e.getMessage());
-         System.exit(ExitCodes.GENERIC);
-      }
-      catch(Exception e)
-      {
-         System.err.println("error: " + e.getMessage());
-         System.exit(ExitCodes.GENERIC);
-      }
-   }
-
-
-
-   /***************************************************************************
-    * Check if the source looks like a template ID (no slashes, dots, or colons).
-    *
-    * @param source template source string
-    * @return true if it looks like a hub template ID
-    * @since 0.1.0
-    ***************************************************************************/
-   private boolean isTemplateId(String source)
-   {
-      return !source.contains("/") && !source.contains(".") && !source.contains(":");
-   }
-
-
-
-   /***************************************************************************
-    * Get manifest from hub entry or file.
-    *
-    * @param templatePath path to template
-    * @param hubEntry hub entry (may be null)
-    * @return template manifest
-    * @throws IOException if manifest cannot be loaded
-    * @since 0.1.0
-    ***************************************************************************/
-   private TemplateManifest getManifest(Path templatePath, TemplatesHub.TemplateEntry hubEntry)
-         throws IOException
-   {
-      if(hubEntry != null)
-      {
-         // Build manifest from hub entry
-         return new TemplateManifest(
+         // Get manifest from hub entry
+         TemplateManifest manifest = new TemplateManifest(
             hubEntry.id(),
             hubEntry.name(),
             hubEntry.version(),
@@ -213,11 +133,134 @@ public class InitCommand implements Runnable
             hubEntry.postGen(),
             hubEntry.ignore()
          );
+
+         // Step 4: Collect variables (prompts + CLI overrides)
+         Map<String, String> allVars = new LinkedHashMap<>();
+         if(!noPrompt && manifest.prompts() != null && !manifest.prompts().isEmpty())
+         {
+            PromptRunner promptRunner = new PromptRunner();
+            allVars.putAll(promptRunner.run(manifest.prompts(), variables));
+         }
+         allVars.putAll(variables);
+
+         // Step 5: Render templates
+         TemplateEngine engine = new TemplateEngine();
+         if(dryRun)
+         {
+            ui.println();
+            ui.println("[DRY-RUN] Would create files:");
+            engine.renderDryRun(templatePath, effectiveTargetDir, allVars, manifest);
+         }
+         else
+         {
+            if(force && Files.exists(effectiveTargetDir))
+            {
+               ui.info("Overwriting existing directory...");
+            }
+            Files.createDirectories(effectiveTargetDir);
+            int fileCount = engine.render(templatePath, effectiveTargetDir, allVars, manifest);
+            ui.println();
+            ui.success("Created " + fileCount + " files in " + effectiveTargetDir);
+
+            // Run post-gen hooks
+            if(!skipHooks && manifest.postGen() != null)
+            {
+               PostGenHookRunner hookRunner = new PostGenHookRunner();
+               hookRunner.run(effectiveTargetDir, manifest.postGen());
+            }
+         }
+
+         ui.println();
+         ui.successBold("Project initialized successfully!");
+         ui.println();
+         ui.println("Next steps:");
+         ui.println("  cd " + effectiveTargetDir);
+         ui.println("  mvn clean verify");
       }
-      else
+      catch(IOException e)
       {
-         // Load from file
-         return TemplateManifest.load(templatePath);
+         ui.error(e.getMessage());
+         System.exit(ExitCodes.GENERIC);
       }
+      catch(Exception e)
+      {
+         ui.error(e.getMessage());
+         System.exit(ExitCodes.GENERIC);
+      }
+   }
+
+
+
+   /***************************************************************************
+    * Select template - use provided name or prompt interactively.
+    *
+    * @param hub templates hub
+    * @param ui console UI
+    * @return selected template entry
+    * @throws IOException if hub cannot be fetched
+    * @since 0.1.0
+    ***************************************************************************/
+   private TemplatesHub.TemplateEntry selectTemplate(TemplatesHub hub, ConsoleUI ui) throws IOException
+   {
+      List<TemplatesHub.TemplateEntry> templates = hub.fetchIndex().templates();
+
+      // If template name provided and found, use it
+      Optional<TemplatesHub.TemplateEntry> entry = hub.findById(templateName);
+      if(entry.isPresent())
+      {
+         TemplatesHub.TemplateEntry selected = entry.get();
+         ui.showValue("Template", selected.name(), selected.id());
+         return selected;
+      }
+
+      // Template not found - prompt for selection
+      ui.error("Template '" + templateName + "' not found.");
+      ui.println();
+
+      // Find default index
+      int defaultIndex = 0;
+      for(int i = 0; i < templates.size(); i++)
+      {
+         if(DEFAULT_TEMPLATE.equals(templates.get(i).id()))
+         {
+            defaultIndex = i;
+            break;
+         }
+      }
+
+      return ui.promptSelect(
+         "Select a template:",
+         templates,
+         TemplatesHub.TemplateEntry::name,
+         TemplatesHub.TemplateEntry::description,
+         defaultIndex
+      );
+   }
+
+
+
+   /***************************************************************************
+    * Get target directory - use provided value or prompt interactively.
+    *
+    * @param ui console UI
+    * @return target directory path
+    * @since 0.1.0
+    ***************************************************************************/
+   private Path getTargetDirectory(ConsoleUI ui)
+   {
+      if(targetDir != null)
+      {
+         ui.showValue("Project directory", targetDir.toString());
+         return targetDir;
+      }
+
+      if(noPrompt)
+      {
+         ui.showValue("Project directory", DEFAULT_PROJECT_DIR);
+         return Path.of(DEFAULT_PROJECT_DIR);
+      }
+
+      String input = ui.promptText("Project directory", DEFAULT_PROJECT_DIR);
+      return Path.of(input);
    }
 }

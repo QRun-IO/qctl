@@ -13,28 +13,47 @@
 package io.qrun.qctl.qqq.template;
 
 
-import java.io.Console;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 
 /*******************************************************************************
  * Runs interactive prompts to collect template variables.
  *
- * Supports text input, selections, and validation.
- * Falls back to simple stdin when console is unavailable.
+ * Uses ConsoleUI for all interactive input. Supports text input and selections.
  *
  * @since 0.1.0
  *******************************************************************************/
 public class PromptRunner
 {
-   private static final String ANSI_BOLD = "\u001B[1m";
-   private static final String ANSI_CYAN = "\u001B[36m";
-   private static final String ANSI_RESET = "\u001B[0m";
-   private static final String ANSI_DIM = "\u001B[2m";
+   private final ConsoleUI ui;
+
+
+
+   /***************************************************************************
+    * Create a new PromptRunner with default ConsoleUI.
+    *
+    * @since 0.1.0
+    ***************************************************************************/
+   public PromptRunner()
+   {
+      this.ui = new ConsoleUI();
+   }
+
+
+
+   /***************************************************************************
+    * Create a new PromptRunner with provided ConsoleUI.
+    *
+    * @param ui the console UI to use
+    * @since 0.1.0
+    ***************************************************************************/
+   public PromptRunner(ConsoleUI ui)
+   {
+      this.ui = ui;
+   }
 
 
 
@@ -51,20 +70,23 @@ public class PromptRunner
                                   Map<String, String> overrides) throws IOException
    {
       Map<String, String> results = new LinkedHashMap<>();
-      Console             console = System.console();
 
-      System.out.println("\n" + ANSI_BOLD + "Configure your project:" + ANSI_RESET + "\n");
+      ui.println();
+      ui.header("Configure your project:");
+      ui.println();
 
       for(TemplateManifest.Prompt prompt : prompts)
       {
          // Skip if already provided via CLI
          if(overrides.containsKey(prompt.name()))
          {
-            results.put(prompt.name(), overrides.get(prompt.name()));
+            String value = overrides.get(prompt.name());
+            ui.showValue(prompt.message() != null ? prompt.message() : prompt.name(), value);
+            results.put(prompt.name(), value);
             continue;
          }
 
-         String value = promptForValue(prompt, console);
+         String value = promptForValue(prompt);
          results.put(prompt.name(), value);
       }
 
@@ -77,57 +99,22 @@ public class PromptRunner
     * Prompt for a single value.
     *
     * @param prompt prompt definition
-    * @param console system console (may be null)
     * @return user input value
     * @since 0.1.0
     ***************************************************************************/
-   private String promptForValue(TemplateManifest.Prompt prompt, Console console)
+   private String promptForValue(TemplateManifest.Prompt prompt)
    {
       String type = prompt.type() != null ? prompt.type() : "text";
+      String message = prompt.message() != null ? prompt.message() : prompt.name();
 
       if("select".equals(type) && prompt.choices() != null)
       {
-         return promptSelect(prompt, console);
+         return promptSelect(message, prompt.choices(), prompt.defaultValue());
       }
       else
       {
-         return promptText(prompt, console);
+         return ui.promptText(message, prompt.defaultValue());
       }
-   }
-
-
-
-   /***************************************************************************
-    * Prompt for text input.
-    *
-    * @param prompt prompt definition
-    * @param console system console
-    * @return user input
-    * @since 0.1.0
-    ***************************************************************************/
-   private String promptText(TemplateManifest.Prompt prompt, Console console)
-   {
-      String message = prompt.message() != null ? prompt.message() : prompt.name();
-      String defaultVal = prompt.defaultValue();
-
-      StringBuilder sb = new StringBuilder();
-      sb.append(ANSI_CYAN).append("? ").append(ANSI_RESET);
-      sb.append(ANSI_BOLD).append(message).append(ANSI_RESET);
-      if(defaultVal != null)
-      {
-         sb.append(" ").append(ANSI_DIM).append("(").append(defaultVal).append(")").append(ANSI_RESET);
-      }
-      sb.append(": ");
-
-      System.out.print(sb);
-
-      String input = readLine(console);
-      if(input == null || input.isBlank())
-      {
-         input = defaultVal != null ? defaultVal : "";
-      }
-
-      return input.trim();
    }
 
 
@@ -135,71 +122,33 @@ public class PromptRunner
    /***************************************************************************
     * Prompt for selection from choices.
     *
-    * @param prompt prompt definition
-    * @param console system console
+    * @param message the prompt message
+    * @param choices list of choices
+    * @param defaultValue default choice
     * @return selected value
     * @since 0.1.0
     ***************************************************************************/
-   private String promptSelect(TemplateManifest.Prompt prompt, Console console)
+   private String promptSelect(String message, List<String> choices, String defaultValue)
    {
-      String       message = prompt.message() != null ? prompt.message() : prompt.name();
-      List<String> choices = prompt.choices();
-
-      System.out.println(ANSI_CYAN + "? " + ANSI_RESET + ANSI_BOLD + message + ANSI_RESET);
-      for(int i = 0; i < choices.size(); i++)
+      int defaultIndex = 0;
+      if(defaultValue != null)
       {
-         String choice = choices.get(i);
-         boolean isDefault = choice.equals(prompt.defaultValue());
-         System.out.println("  " + (i + 1) + ") " + choice + (isDefault ? " (default)" : ""));
-      }
-
-      System.out.print("  Enter number [1-" + choices.size() + "]: ");
-      String input = readLine(console);
-
-      if(input == null || input.isBlank())
-      {
-         return prompt.defaultValue() != null ? prompt.defaultValue() : choices.get(0);
-      }
-
-      try
-      {
-         int index = Integer.parseInt(input.trim()) - 1;
-         if(index >= 0 && index < choices.size())
+         for(int i = 0; i < choices.size(); i++)
          {
-            return choices.get(index);
+            if(defaultValue.equals(choices.get(i)))
+            {
+               defaultIndex = i;
+               break;
+            }
          }
       }
-      catch(NumberFormatException e)
-      {
-         // Fall through to default
-      }
 
-      return prompt.defaultValue() != null ? prompt.defaultValue() : choices.get(0);
-   }
-
-
-
-   /***************************************************************************
-    * Read a line from console or stdin.
-    *
-    * @param console system console (may be null)
-    * @return user input line
-    * @since 0.1.0
-    ***************************************************************************/
-   private String readLine(Console console)
-   {
-      if(console != null)
-      {
-         return console.readLine();
-      }
-      else
-      {
-         Scanner scanner = new Scanner(System.in);
-         if(scanner.hasNextLine())
-         {
-            return scanner.nextLine();
-         }
-         return "";
-      }
+      return ui.promptSelect(
+         message,
+         choices,
+         s -> s,
+         s -> null,
+         defaultIndex
+      );
    }
 }
