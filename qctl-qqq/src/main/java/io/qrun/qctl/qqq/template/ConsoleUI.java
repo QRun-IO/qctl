@@ -34,6 +34,8 @@ public class ConsoleUI
    private static final String ANSI_RESET = "\u001B[0m";
    private static final String ANSI_DIM = "\u001B[2m";
    private static final String ANSI_GREEN = "\u001B[32m";
+   private static final String ANSI_RED = "\u001B[31m";
+   private static final String ANSI_YELLOW = "\u001B[33m";
 
    private final Console console;
    private final Scanner scanner;
@@ -128,6 +130,44 @@ public class ConsoleUI
    public void error(String text)
    {
       System.err.println("error: " + text);
+   }
+
+
+
+   /***************************************************************************
+    * Print a validation error message inline.
+    *
+    * @param text the error message
+    * @since 0.2.0
+    ***************************************************************************/
+   public void validationError(String text)
+   {
+      System.out.println("  " + ANSI_RED + "✗ " + text + ANSI_RESET);
+   }
+
+
+
+   /***************************************************************************
+    * Print a validation success indicator.
+    *
+    * @since 0.2.0
+    ***************************************************************************/
+   public void validationSuccess()
+   {
+      System.out.println("  " + ANSI_GREEN + "✓" + ANSI_RESET);
+   }
+
+
+
+   /***************************************************************************
+    * Print a warning message.
+    *
+    * @param text the warning message
+    * @since 0.2.0
+    ***************************************************************************/
+   public void warning(String text)
+   {
+      System.out.println(ANSI_YELLOW + "warning: " + text + ANSI_RESET);
    }
 
 

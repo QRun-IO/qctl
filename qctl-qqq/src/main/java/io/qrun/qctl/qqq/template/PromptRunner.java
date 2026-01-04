@@ -23,12 +23,14 @@ import java.util.Map;
  * Runs interactive prompts to collect template variables.
  *
  * Uses ConsoleUI for all interactive input. Supports text input and selections.
+ * Validates input against prompt rules and re-prompts on failure.
  *
  * @since 0.1.0
  *******************************************************************************/
 public class PromptRunner
 {
    private final ConsoleUI ui;
+   private final PromptValidator validator;
 
 
 
@@ -40,6 +42,7 @@ public class PromptRunner
    public PromptRunner()
    {
       this.ui = new ConsoleUI();
+      this.validator = new PromptValidator();
    }
 
 
@@ -53,6 +56,7 @@ public class PromptRunner
    public PromptRunner(ConsoleUI ui)
    {
       this.ui = ui;
+      this.validator = new PromptValidator();
    }
 
 
@@ -77,12 +81,26 @@ public class PromptRunner
 
       for(TemplateManifest.Prompt prompt : prompts)
       {
-         // Skip if already provided via CLI
+         // Check if provided via CLI
          if(overrides.containsKey(prompt.name()))
          {
             String value = overrides.get(prompt.name());
-            ui.showValue(prompt.message() != null ? prompt.message() : prompt.name(), value);
-            results.put(prompt.name(), value);
+            String label = prompt.message() != null ? prompt.message() : prompt.name();
+            PromptValidator.ValidationResult result = validator.validate(prompt, value);
+
+            if(result.valid())
+            {
+               ui.showValue(label, value);
+               results.put(prompt.name(), value);
+            }
+            else
+            {
+               ui.showValue(label, value);
+               ui.validationError(result.errorMessage());
+               ui.warning("Invalid --var value, prompting interactively");
+               String corrected = promptForValue(prompt);
+               results.put(prompt.name(), corrected);
+            }
             continue;
          }
 
@@ -96,10 +114,12 @@ public class PromptRunner
 
 
    /***************************************************************************
-    * Prompt for a single value.
+    * Prompt for a single value with validation.
+    *
+    * Re-prompts on validation failure until valid input is provided.
     *
     * @param prompt prompt definition
-    * @return user input value
+    * @return validated user input value
     * @since 0.1.0
     ***************************************************************************/
    private String promptForValue(TemplateManifest.Prompt prompt)
@@ -111,9 +131,24 @@ public class PromptRunner
       {
          return promptSelect(message, prompt.choices(), prompt.defaultValue());
       }
-      else
+
+      boolean hasValidation = prompt.isRequired() || prompt.validation() != null;
+
+      while(true)
       {
-         return ui.promptText(message, prompt.defaultValue());
+         String value = ui.promptText(message, prompt.defaultValue());
+         PromptValidator.ValidationResult result = validator.validate(prompt, value);
+
+         if(result.valid())
+         {
+            if(hasValidation)
+            {
+               ui.validationSuccess();
+            }
+            return value;
+         }
+
+         ui.validationError(result.errorMessage());
       }
    }
 

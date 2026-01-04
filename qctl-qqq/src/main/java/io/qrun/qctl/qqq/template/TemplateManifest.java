@@ -96,10 +96,20 @@ public record TemplateManifest(
       String type,
       String defaultValue,
       List<String> choices,
-      String validation,
+      PromptValidation validation,
       Boolean required
    )
    {
+      /*************************************************************************
+       * Check if this prompt is required.
+       *
+       * @return true if required (defaults to true if not specified)
+       * @since 0.2.0
+       *************************************************************************/
+      public boolean isRequired()
+      {
+         return required == null || required;
+      }
    }
 
 
