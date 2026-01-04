@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.qrun.qctl.qqq.error.SuggestionEngine;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.MethodInvocationException;
@@ -68,6 +70,7 @@ public class TemplateEngine
 
    private final VelocityEngine velocityEngine;
    private final StringTool stringTool;
+   private final SuggestionEngine suggestionEngine;
 
 
 
@@ -80,6 +83,7 @@ public class TemplateEngine
    {
       this.velocityEngine = createVelocityEngine();
       this.stringTool = new StringTool();
+      this.suggestionEngine = new SuggestionEngine();
    }
 
 
@@ -400,7 +404,13 @@ public class TemplateEngine
    public String renderPath(String path, Map<String, String> variables)
          throws TemplateRenderException
    {
-      return renderContent(path, variables);
+      /////////////////////////////////////////////////////////////////////////
+      // Convert __VARNAME__ placeholders to $VARNAME for Velocity.          //
+      // This allows templates to use __VARNAME__ in paths, which is safer   //
+      // for shells and build tools that might interpret $ as a variable.    //
+      /////////////////////////////////////////////////////////////////////////
+      String normalizedPath = path.replaceAll("__([a-zA-Z][a-zA-Z0-9]*)__", "\\$$1");
+      return renderContent(normalizedPath, variables);
    }
 
 
@@ -600,11 +610,41 @@ public class TemplateEngine
             String fullRef = matcher.group(0);
             if(template.contains(fullRef))
             {
-               throw new TemplateRenderException(
-                  "Undefined variable: " + varName);
+               //////////////////////////////////////////////////////////////
+               // Collect available variables and find similar ones        //
+               //////////////////////////////////////////////////////////////
+               List<String> available = collectAvailableVariables(context);
+               List<String> suggestions = suggestionEngine.findSimilar(varName, available);
+               throw new TemplateRenderException(varName, suggestions, available);
             }
          }
       }
+   }
+
+
+
+   /***************************************************************************
+    * Collect all available variable names from the context.
+    *
+    * @param context Velocity context
+    * @return list of variable names
+    * @since 0.2.0
+    ***************************************************************************/
+   private List<String> collectAvailableVariables(VelocityContext context)
+   {
+      List<String> variables = new ArrayList<>();
+      for(Object key : context.getKeys())
+      {
+         String name = key.toString();
+         /////////////////////////////////////////////////////////////////////
+         // Skip internal tools like $str                                   //
+         /////////////////////////////////////////////////////////////////////
+         if(!"str".equals(name))
+         {
+            variables.add(name);
+         }
+      }
+      return variables;
    }
 
 
