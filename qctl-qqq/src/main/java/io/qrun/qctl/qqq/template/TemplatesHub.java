@@ -132,14 +132,18 @@ public class TemplatesHub
     ***************************************************************************/
    @JsonIgnoreProperties(ignoreUnknown = true)
    public record TemplateEntry(
+      Integer schemaVersion,
       String id,
       String name,
       String description,
       String repo,
       String version,
+      String minimumQctlVersion,
       List<String> tags,
       String maintainer,
       List<TemplateManifest.Prompt> prompts,
+      List<ComputedVariable> computed,
+      List<Transform> transforms,
       List<TemplateManifest.PostGenHook> postGen,
       List<String> ignore
    )

@@ -25,8 +25,10 @@ import io.qrun.qctl.qqq.template.PostGenHookRunner;
 import io.qrun.qctl.qqq.template.PromptRunner;
 import io.qrun.qctl.qqq.template.TemplateEngine;
 import io.qrun.qctl.qqq.template.TemplateManifest;
+import io.qrun.qctl.qqq.template.TemplateRenderException;
 import io.qrun.qctl.qqq.template.TemplateResolver;
 import io.qrun.qctl.qqq.template.TemplatesHub;
+import io.qrun.qctl.qqq.template.TransformExecutor;
 import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -37,7 +39,7 @@ import picocli.CommandLine.Parameters;
  * Initialize a new project from a template.
  *
  * Supports template IDs from hub, local paths, git URLs, or github shorthand.
- * Renders Handlebars templates, prompts for variables, and runs post-gen hooks.
+ * Renders Velocity templates, prompts for variables, and runs post-gen hooks.
  *
  * @since 0.1.0
  *******************************************************************************/
@@ -125,14 +127,35 @@ public class InitCommand implements Runnable
 
          // Get manifest from hub entry
          TemplateManifest manifest = new TemplateManifest(
+            hubEntry.schemaVersion(),
             hubEntry.id(),
             hubEntry.name(),
             hubEntry.version(),
             hubEntry.description(),
+            hubEntry.minimumQctlVersion(),
             hubEntry.prompts(),
+            hubEntry.computed(),
+            hubEntry.transforms(),
             hubEntry.postGen(),
             hubEntry.ignore()
          );
+
+         // Check minimum qctl version
+         if(manifest.minimumQctlVersion() != null)
+         {
+            String currentVersion = getClass().getPackage().getImplementationVersion();
+            if(currentVersion == null)
+            {
+               currentVersion = "0.0.0-dev";
+            }
+            if(!isVersionSatisfied(currentVersion, manifest.minimumQctlVersion()))
+            {
+               ui.error("Template requires qctl " + manifest.minimumQctlVersion() + " or later");
+               ui.println("Current version: " + currentVersion);
+               ui.println("Please upgrade qctl to use this template.");
+               System.exit(ExitCodes.VALIDATION);
+            }
+         }
 
          // Step 4: Collect variables (prompts + CLI overrides)
          Map<String, String> allVars = new LinkedHashMap<>();
@@ -143,8 +166,9 @@ public class InitCommand implements Runnable
          }
          allVars.putAll(variables);
 
-         // Step 5: Render templates
+         // Step 5: Evaluate computed variables
          TemplateEngine engine = new TemplateEngine();
+         allVars = new LinkedHashMap<>(engine.evaluateComputed(manifest.computed(), allVars));
          if(dryRun)
          {
             ui.println();
@@ -162,6 +186,14 @@ public class InitCommand implements Runnable
             ui.println();
             ui.success("Created " + fileCount + " files in " + effectiveTargetDir);
 
+            // Run transforms (rename/delete)
+            if(manifest.transforms() != null && !manifest.transforms().isEmpty())
+            {
+               ui.info("Applying transforms...");
+               TransformExecutor transformExecutor = new TransformExecutor();
+               transformExecutor.execute(effectiveTargetDir, manifest.transforms(), allVars);
+            }
+
             // Run post-gen hooks
             if(!skipHooks && manifest.postGen() != null)
             {
@@ -176,6 +208,11 @@ public class InitCommand implements Runnable
          ui.println("Next steps:");
          ui.println("  cd " + effectiveTargetDir);
          ui.println("  mvn clean verify");
+      }
+      catch(TemplateRenderException e)
+      {
+         ui.error("Template error: " + e.getMessage());
+         System.exit(ExitCodes.VALIDATION);
       }
       catch(IOException e)
       {
@@ -262,5 +299,71 @@ public class InitCommand implements Runnable
 
       String input = ui.promptText("Project directory", DEFAULT_PROJECT_DIR);
       return Path.of(input);
+   }
+
+
+
+   /***************************************************************************
+    * Check if current version satisfies the minimum version requirement.
+    *
+    * @param current current version string (e.g., "0.2.0")
+    * @param minimum minimum required version (e.g., "0.1.0")
+    * @return true if current >= minimum
+    * @since 0.2.0
+    ***************************************************************************/
+   private boolean isVersionSatisfied(String current, String minimum)
+   {
+      int[] currentParts = parseVersion(current);
+      int[] minimumParts = parseVersion(minimum);
+
+      for(int i = 0; i < 3; i++)
+      {
+         if(currentParts[i] > minimumParts[i])
+         {
+            return true;
+         }
+         if(currentParts[i] < minimumParts[i])
+         {
+            return false;
+         }
+      }
+      return true;
+   }
+
+
+
+   /***************************************************************************
+    * Parse a version string into major, minor, patch components.
+    *
+    * @param version version string (e.g., "1.2.3" or "1.2.3-dev")
+    * @return array of [major, minor, patch]
+    * @since 0.2.0
+    ***************************************************************************/
+   private int[] parseVersion(String version)
+   {
+      int[] parts = {0, 0, 0};
+      if(version == null || version.isEmpty())
+      {
+         return parts;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+      // Strip any suffix after dash (e.g., "1.2.3-dev" -> "1.2.3")         //
+      /////////////////////////////////////////////////////////////////////////
+      String cleanVersion = version.contains("-") ? version.split("-")[0] : version;
+      String[] segments = cleanVersion.split("\\.");
+
+      for(int i = 0; i < Math.min(segments.length, 3); i++)
+      {
+         try
+         {
+            parts[i] = Integer.parseInt(segments[i]);
+         }
+         catch(NumberFormatException e)
+         {
+            parts[i] = 0;
+         }
+      }
+      return parts;
    }
 }

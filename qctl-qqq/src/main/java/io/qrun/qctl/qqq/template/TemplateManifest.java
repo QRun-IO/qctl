@@ -25,21 +25,42 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 /*******************************************************************************
  * Represents a template manifest (template.yaml).
  *
+ * Schema v2 adds: schemaVersion, minimumQctlVersion, prompts[].required,
+ * postGen[].phase. Backward compatible with v1 manifests.
+ *
  * @since 0.1.0
  *******************************************************************************/
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record TemplateManifest(
+   Integer schemaVersion,
    String id,
    String name,
    String version,
    String description,
+   String minimumQctlVersion,
    List<Prompt> prompts,
+   List<ComputedVariable> computed,
+   List<Transform> transforms,
    List<PostGenHook> postGen,
    List<String> ignore
 )
 {
    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
    private static final String MANIFEST_FILE = "template.yaml";
+   private static final int DEFAULT_SCHEMA_VERSION = 1;
+
+
+
+   /***************************************************************************
+    * Get effective schema version (defaults to 1 for backward compatibility).
+    *
+    * @return schema version
+    * @since 0.2.0
+    ***************************************************************************/
+   public int getEffectiveSchemaVersion()
+   {
+      return schemaVersion != null ? schemaVersion : DEFAULT_SCHEMA_VERSION;
+   }
 
 
 
@@ -75,7 +96,8 @@ public record TemplateManifest(
       String type,
       String defaultValue,
       List<String> choices,
-      String validation
+      String validation,
+      Boolean required
    )
    {
    }
@@ -92,7 +114,8 @@ public record TemplateManifest(
       String name,
       String command,
       String workDir,
-      Boolean optional
+      Boolean optional,
+      String phase
    )
    {
    }
