@@ -14,23 +14,34 @@ package io.qrun.qctl.qqq.template;
 
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.Template;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.runtime.RuntimeConstants;
 
 
 /*******************************************************************************
- * Renders templates using Handlebars.
+ * Renders templates using Apache Velocity.
  *
- * Supports path substitution ({{projectName}}/src) and content templating.
+ * Supports path substitution ($packagePath/src) and content templating with
+ * full Velocity syntax including control flow and macros.
  *
  * @since 0.1.0
  *******************************************************************************/
@@ -42,7 +53,21 @@ public class TemplateEngine
       ".zip", ".tar", ".gz", ".war", ".ear", ".pdf"
    );
 
-   private final Handlebars handlebars;
+   /////////////////////////////////////////////////////////////////////////////
+   // Files that should be copied verbatim without template processing        //
+   /////////////////////////////////////////////////////////////////////////////
+   private static final Set<String> VERBATIM_FILENAMES = Set.of(
+      "mvnw", "mvnw.cmd", "gradlew", "gradlew.bat"
+   );
+
+   /////////////////////////////////////////////////////////////////////////////
+   // Pattern to detect undefined Velocity references ($var or ${var})       //
+   /////////////////////////////////////////////////////////////////////////////
+   private static final Pattern UNDEFINED_REF_PATTERN =
+      Pattern.compile("\\$(!)?\\{?([a-zA-Z][a-zA-Z0-9_]*)\\}?");
+
+   private final VelocityEngine velocityEngine;
+   private final StringTool stringTool;
 
 
 
@@ -53,80 +78,29 @@ public class TemplateEngine
     ***************************************************************************/
    public TemplateEngine()
    {
-      this.handlebars = new Handlebars();
-      registerHelpers();
+      this.velocityEngine = createVelocityEngine();
+      this.stringTool = new StringTool();
    }
 
 
 
    /***************************************************************************
-    * Register custom Handlebars helpers.
+    * Create and configure the Velocity engine.
     *
-    * @since 0.1.0
+    * @return configured VelocityEngine
+    * @since 0.2.0
     ***************************************************************************/
-   private void registerHelpers()
+   private VelocityEngine createVelocityEngine()
    {
-      // lowercase helper
-      handlebars.registerHelper("lowercase", (context, options) ->
-         context != null ? context.toString().toLowerCase() : "");
+      Properties props = new Properties();
+      props.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
+      props.setProperty(RuntimeConstants.RESOURCE_LOADERS, "string");
+      props.setProperty("resource.loader.string.class",
+         "org.apache.velocity.runtime.resource.loader.StringResourceLoader");
 
-      // uppercase helper
-      handlebars.registerHelper("uppercase", (context, options) ->
-         context != null ? context.toString().toUpperCase() : "");
-
-      // camelCase helper
-      handlebars.registerHelper("camelCase", (context, options) ->
-      {
-         if(context == null)
-         {
-            return "";
-         }
-         String s = context.toString();
-         if(s.isEmpty())
-         {
-            return "";
-         }
-         return Character.toLowerCase(s.charAt(0)) + s.substring(1);
-      });
-
-      // PascalCase helper
-      handlebars.registerHelper("pascalCase", (context, options) ->
-      {
-         if(context == null)
-         {
-            return "";
-         }
-         String s = context.toString();
-         if(s.isEmpty())
-         {
-            return "";
-         }
-         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
-      });
-
-      // kebab-case helper
-      handlebars.registerHelper("kebabCase", (context, options) ->
-      {
-         if(context == null)
-         {
-            return "";
-         }
-         return context.toString()
-            .replaceAll("([a-z])([A-Z])", "$1-$2")
-            .toLowerCase();
-      });
-
-      // snake_case helper
-      handlebars.registerHelper("snakeCase", (context, options) ->
-      {
-         if(context == null)
-         {
-            return "";
-         }
-         return context.toString()
-            .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase();
-      });
+      VelocityEngine engine = new VelocityEngine();
+      engine.init(props);
+      return engine;
    }
 
 
@@ -139,20 +113,22 @@ public class TemplateEngine
     * @param variables template variables
     * @param manifest template manifest
     * @return number of files created
-    * @throws IOException if rendering fails
+    * @throws IOException if file operations fail
+    * @throws TemplateRenderException if template rendering fails
     * @since 0.1.0
     ***************************************************************************/
    public int render(Path templateDir, Path targetDir, Map<String, String> variables,
-                     TemplateManifest manifest) throws IOException
+                     TemplateManifest manifest) throws IOException, TemplateRenderException
    {
-      Path       sourceDir = resolveTemplateSource(templateDir);
+      Path        sourceDir      = resolveTemplateSource(templateDir);
       Set<String> ignorePatterns = manifest.ignore() != null
          ? new HashSet<>(manifest.ignore())
          : new HashSet<>();
       ignorePatterns.add(".git");
       ignorePatterns.add("template.yaml");
 
-      AtomicInteger fileCount = new AtomicInteger();
+      AtomicInteger                  fileCount         = new AtomicInteger();
+      AtomicReference<Exception>     renderError       = new AtomicReference<>();
 
       Files.walkFileTree(sourceDir, new SimpleFileVisitor<>()
       {
@@ -165,10 +141,18 @@ public class TemplateEngine
                return FileVisitResult.SKIP_SUBTREE;
             }
 
-            Path relativePath = sourceDir.relativize(dir);
-            String renderedPath = renderPath(relativePath.toString(), variables);
-            Path   targetPath = targetDir.resolve(renderedPath);
-            Files.createDirectories(targetPath);
+            try
+            {
+               Path   relativePath = sourceDir.relativize(dir);
+               String renderedPath = renderPath(relativePath.toString(), variables);
+               Path   targetPath   = targetDir.resolve(renderedPath);
+               Files.createDirectories(targetPath);
+            }
+            catch(TemplateRenderException e)
+            {
+               renderError.set(e);
+               return FileVisitResult.TERMINATE;
+            }
             return FileVisitResult.CONTINUE;
          }
 
@@ -183,24 +167,42 @@ public class TemplateEngine
                return FileVisitResult.CONTINUE;
             }
 
-            String renderedPath = renderPath(relativePath.toString(), variables);
-            Path   targetPath = targetDir.resolve(renderedPath);
+            try
+            {
+               String renderedPath = renderPath(relativePath.toString(), variables);
+               Path   targetPath   = targetDir.resolve(renderedPath);
 
-            if(isBinaryFile(file))
-            {
-               Files.copy(file, targetPath);
+               if(isBinaryFile(file) || isVerbatimFile(file))
+               {
+                  Files.copy(file, targetPath);
+               }
+               else
+               {
+                  String content  = Files.readString(file);
+                  String rendered = renderContent(content, variables);
+                  Files.writeString(targetPath, rendered);
+               }
+               fileCount.incrementAndGet();
+               System.out.println("  " + renderedPath);
             }
-            else
+            catch(TemplateRenderException e)
             {
-               String content = Files.readString(file);
-               String rendered = renderContent(content, variables);
-               Files.writeString(targetPath, rendered);
+               renderError.set(e);
+               return FileVisitResult.TERMINATE;
             }
-            fileCount.incrementAndGet();
-            System.out.println("  " + renderedPath);
             return FileVisitResult.CONTINUE;
          }
       });
+
+      if(renderError.get() != null)
+      {
+         Exception e = renderError.get();
+         if(e instanceof TemplateRenderException tre)
+         {
+            throw tre;
+         }
+         throw new TemplateRenderException("Template rendering failed", e);
+      }
 
       return fileCount.get();
    }
@@ -214,18 +216,21 @@ public class TemplateEngine
     * @param targetDir target output directory
     * @param variables template variables
     * @param manifest template manifest
-    * @throws IOException if rendering fails
+    * @throws IOException if file operations fail
+    * @throws TemplateRenderException if path rendering fails
     * @since 0.1.0
     ***************************************************************************/
    public void renderDryRun(Path templateDir, Path targetDir, Map<String, String> variables,
-                            TemplateManifest manifest) throws IOException
+                            TemplateManifest manifest) throws IOException, TemplateRenderException
    {
-      Path       sourceDir = resolveTemplateSource(templateDir);
+      Path        sourceDir      = resolveTemplateSource(templateDir);
       Set<String> ignorePatterns = manifest.ignore() != null
          ? new HashSet<>(manifest.ignore())
          : new HashSet<>();
       ignorePatterns.add(".git");
       ignorePatterns.add("template.yaml");
+
+      AtomicReference<TemplateRenderException> renderError = new AtomicReference<>();
 
       Files.walkFileTree(sourceDir, new SimpleFileVisitor<>()
       {
@@ -249,11 +254,245 @@ public class TemplateEngine
                return FileVisitResult.CONTINUE;
             }
 
-            String renderedPath = renderPath(relativePath.toString(), variables);
-            System.out.println("  " + targetDir.resolve(renderedPath));
+            try
+            {
+               String renderedPath = renderPath(relativePath.toString(), variables);
+               System.out.println("  " + targetDir.resolve(renderedPath));
+            }
+            catch(TemplateRenderException e)
+            {
+               renderError.set(e);
+               return FileVisitResult.TERMINATE;
+            }
             return FileVisitResult.CONTINUE;
          }
       });
+
+      if(renderError.get() != null)
+      {
+         throw renderError.get();
+      }
+   }
+
+
+
+   /***************************************************************************
+    * Render a path string with Velocity variable substitution.
+    *
+    * @param path path string with $var placeholders
+    * @param variables template variables
+    * @return rendered path
+    * @throws TemplateRenderException if rendering fails
+    * @since 0.1.0
+    ***************************************************************************/
+   public String renderPath(String path, Map<String, String> variables)
+         throws TemplateRenderException
+   {
+      return renderContent(path, variables);
+   }
+
+
+
+   /***************************************************************************
+    * Render content using Velocity with string variables.
+    *
+    * @param content template content
+    * @param variables template variables (String values)
+    * @return rendered content
+    * @throws TemplateRenderException if rendering fails
+    * @since 0.1.0
+    ***************************************************************************/
+   public String renderContent(String content, Map<String, String> variables)
+         throws TemplateRenderException
+   {
+      VelocityContext context = createContext(variables);
+      return evaluateTemplate(content, context);
+   }
+
+
+
+   /***************************************************************************
+    * Render content using Velocity with object variables.
+    *
+    * Supports complex objects like lists for #foreach directives.
+    *
+    * @param content template content
+    * @param variables template variables (Object values)
+    * @return rendered content
+    * @throws TemplateRenderException if rendering fails
+    * @since 0.2.0
+    ***************************************************************************/
+   public String renderContentWithObjects(String content, Map<String, Object> variables)
+         throws TemplateRenderException
+   {
+      VelocityContext context = new VelocityContext();
+      context.put("str", stringTool);
+      for(Map.Entry<String, Object> entry : variables.entrySet())
+      {
+         context.put(entry.getKey(), entry.getValue());
+      }
+      return evaluateTemplate(content, context);
+   }
+
+
+
+   /***************************************************************************
+    * Evaluate computed variables and merge with input variables.
+    *
+    * Computed variables are evaluated in order. Each computed variable
+    * can reference previously defined variables (prompts or earlier computed).
+    * If a computed variable references an undefined variable, rendering fails.
+    *
+    * @param computed list of computed variable definitions (may be null)
+    * @param variables input variables from prompts
+    * @return merged map containing original and computed variables
+    * @throws TemplateRenderException if evaluation fails
+    * @since 0.2.0
+    ***************************************************************************/
+   public Map<String, String> evaluateComputed(List<ComputedVariable> computed,
+                                                Map<String, String> variables)
+         throws TemplateRenderException
+   {
+      if(computed == null || computed.isEmpty())
+      {
+         return variables;
+      }
+
+      Map<String, String> result = new HashMap<>(variables);
+
+      for(ComputedVariable cv : computed)
+      {
+         String value = renderContent(cv.expression(), result);
+         result.put(cv.name(), value);
+      }
+
+      return result;
+   }
+
+
+
+   /***************************************************************************
+    * Create a Velocity context with string variables and tools.
+    *
+    * @param variables template variables
+    * @return configured VelocityContext
+    * @since 0.2.0
+    ***************************************************************************/
+   private VelocityContext createContext(Map<String, String> variables)
+   {
+      VelocityContext context = new VelocityContext();
+      context.put("str", stringTool);
+      for(Map.Entry<String, String> entry : variables.entrySet())
+      {
+         context.put(entry.getKey(), entry.getValue());
+      }
+      return context;
+   }
+
+
+
+   /***************************************************************************
+    * Evaluate a template string with the given context.
+    *
+    * @param template template string
+    * @param context Velocity context
+    * @return rendered string
+    * @throws TemplateRenderException if rendering fails
+    * @since 0.2.0
+    ***************************************************************************/
+   private String evaluateTemplate(String template, VelocityContext context)
+         throws TemplateRenderException
+   {
+      try
+      {
+         StringWriter writer = new StringWriter();
+         boolean      result = velocityEngine.evaluate(context, writer, "template", template);
+
+         if(!result)
+         {
+            throw new TemplateRenderException("Template evaluation failed");
+         }
+
+         String output = writer.toString();
+
+         /////////////////////////////////////////////////////////////////////
+         // Check for undefined references that weren't resolved           //
+         /////////////////////////////////////////////////////////////////////
+         checkForUndefinedReferences(template, output, context);
+
+         return output;
+      }
+      catch(ParseErrorException e)
+      {
+         throw new TemplateRenderException("Template syntax error: " + e.getMessage(), e);
+      }
+      catch(MethodInvocationException e)
+      {
+         throw new TemplateRenderException("Template method error: " + e.getMessage(), e);
+      }
+      catch(ResourceNotFoundException e)
+      {
+         throw new TemplateRenderException("Template resource not found: " + e.getMessage(), e);
+      }
+   }
+
+
+
+   /***************************************************************************
+    * Check for undefined variable references in the output.
+    *
+    * If a variable reference like $name appears in both input and output
+    * unchanged, it means the variable was not defined.
+    *
+    * @param template original template
+    * @param output rendered output
+    * @param context Velocity context
+    * @throws TemplateRenderException if undefined references found
+    * @since 0.2.0
+    ***************************************************************************/
+   private void checkForUndefinedReferences(String template, String output,
+                                             VelocityContext context)
+         throws TemplateRenderException
+   {
+      Matcher matcher = UNDEFINED_REF_PATTERN.matcher(output);
+      while(matcher.find())
+      {
+         String varName = matcher.group(2);
+
+         /////////////////////////////////////////////////////////////////////
+         // Skip if it's a tool reference (like $str)                       //
+         /////////////////////////////////////////////////////////////////////
+         if("str".equals(varName))
+         {
+            continue;
+         }
+
+         /////////////////////////////////////////////////////////////////////
+         // Skip if it looks like a Maven property (${name.something})      //
+         // These are intentionally left as literals in templates           //
+         /////////////////////////////////////////////////////////////////////
+         int endPos = matcher.end();
+         if(endPos < output.length() && output.charAt(endPos) == '.')
+         {
+            continue;
+         }
+
+         /////////////////////////////////////////////////////////////////////
+         // If the variable is not in context, it's undefined               //
+         /////////////////////////////////////////////////////////////////////
+         if(context.get(varName) == null)
+         {
+            /////////////////////////////////////////////////////////////////
+            // Check if this exact reference was in the original template  //
+            /////////////////////////////////////////////////////////////////
+            String fullRef = matcher.group(0);
+            if(template.contains(fullRef))
+            {
+               throw new TemplateRenderException(
+                  "Undefined variable: " + varName);
+            }
+         }
+      }
    }
 
 
@@ -273,50 +512,6 @@ public class TemplateEngine
          return templateSubdir;
       }
       return templateDir;
-   }
-
-
-
-   /***************************************************************************
-    * Render a path string with variable substitution.
-    *
-    * @param path path string with {{var}} placeholders
-    * @param variables template variables
-    * @return rendered path
-    * @since 0.1.0
-    ***************************************************************************/
-   private String renderPath(String path, Map<String, String> variables)
-   {
-      String result = path;
-      for(Map.Entry<String, String> entry : variables.entrySet())
-      {
-         result = result.replace("{{" + entry.getKey() + "}}", entry.getValue());
-      }
-      return result;
-   }
-
-
-
-   /***************************************************************************
-    * Render content using Handlebars.
-    *
-    * @param content template content
-    * @param variables template variables
-    * @return rendered content
-    * @since 0.1.0
-    ***************************************************************************/
-   private String renderContent(String content, Map<String, String> variables)
-   {
-      try
-      {
-         Template template = handlebars.compileInline(content);
-         return template.apply(variables);
-      }
-      catch(IOException e)
-      {
-         // If template compilation fails, return content as-is
-         return content;
-      }
    }
 
 
@@ -369,5 +564,59 @@ public class TemplateEngine
          }
       }
       return false;
+   }
+
+
+
+   /***************************************************************************
+    * Check if a file should be copied verbatim without template processing.
+    *
+    * @param file file path
+    * @return true if file should be copied verbatim
+    * @since 0.2.0
+    ***************************************************************************/
+   private boolean isVerbatimFile(Path file)
+   {
+      String name = file.getFileName().toString();
+      return VERBATIM_FILENAMES.contains(name);
+   }
+
+
+
+   /***************************************************************************
+    * Inner class to hold exception reference for use in visitor.
+    *
+    * @param <T> exception type
+    * @since 0.2.0
+    ***************************************************************************/
+   private static class AtomicReference<T>
+   {
+      private T value;
+
+
+
+      /*************************************************************************
+       * Set the value.
+       *
+       * @param value value to set
+       * @since 0.2.0
+       *************************************************************************/
+      public void set(T value)
+      {
+         this.value = value;
+      }
+
+
+
+      /*************************************************************************
+       * Get the value.
+       *
+       * @return stored value
+       * @since 0.2.0
+       *************************************************************************/
+      public T get()
+      {
+         return value;
+      }
    }
 }
