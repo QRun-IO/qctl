@@ -1,0 +1,40 @@
+schemaVersion: 2
+id: test-full-substitution
+name: Full Substitution Test Template
+version: 1.0.0
+description: Template for testing variable substitution in file content
+
+prompts:
+  - name: projectName
+    message: Project name
+    type: text
+    defaultValue: my-project
+    required: true
+  - name: packageName
+    message: Package name
+    type: text
+    defaultValue: com.example
+    required: true
+  - name: groupId
+    message: Maven group ID
+    type: text
+    defaultValue: com.example
+    required: true
+  - name: artifactId
+    message: Maven artifact ID
+    type: text
+    defaultValue: my-app
+    required: true
+  - name: version
+    message: Project version
+    type: text
+    defaultValue: 1.0.0-SNAPSHOT
+    required: true
+
+computed:
+  - name: packagePath
+    expression: "$str.replace($packageName, '.', '/')"
+
+transforms: []
+postGen: []
+ignore: []

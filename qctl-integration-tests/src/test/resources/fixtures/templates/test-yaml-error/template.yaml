@@ -1,0 +1,11 @@
+schemaVersion: 2
+id: test-yaml-error
+name: YAML Error Test Template
+version: 1.0.0
+description: Template with intentional YAML syntax error
+
+prompts:
+  - name: projectName
+    message: Project name
+    - this_is_invalid  # Intentional YAML error at line 9
+    type: text

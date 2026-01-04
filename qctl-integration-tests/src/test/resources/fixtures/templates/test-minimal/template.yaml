@@ -1,0 +1,10 @@
+schemaVersion: 2
+id: test-minimal
+name: Minimal Test Template
+version: 1.0.0
+description: Minimal template for fast E2E tests
+prompts: []
+computed: []
+transforms: []
+postGen: []
+ignore: []

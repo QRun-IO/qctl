@@ -1,0 +1,30 @@
+schemaVersion: 2
+id: test-with-prompts
+name: Test Template with Prompts
+version: 1.0.0
+description: Template for testing interactive prompts
+
+prompts:
+  - name: projectName
+    message: Project name
+    type: text
+    defaultValue: my-project
+    required: true
+  - name: packageName
+    message: Package name
+    type: text
+    defaultValue: com.example
+    required: true
+  - name: includeTests
+    message: Include tests?
+    type: confirm
+    defaultValue: "true"
+    required: false
+
+computed:
+  - name: packagePath
+    expression: "$str.replace($packageName, '.', '/')"
+
+transforms: []
+postGen: []
+ignore: []

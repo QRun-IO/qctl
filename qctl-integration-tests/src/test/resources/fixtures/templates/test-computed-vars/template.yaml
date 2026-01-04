@@ -1,0 +1,29 @@
+schemaVersion: 2
+id: test-computed-vars
+name: Computed Variables Test Template
+version: 1.0.0
+description: Template for testing computed variable evaluation
+
+prompts:
+  - name: packageName
+    message: Package name
+    type: text
+    defaultValue: com.example.app
+    required: true
+  - name: projectName
+    message: Project name
+    type: text
+    defaultValue: my-project
+    required: true
+
+computed:
+  - name: packagePath
+    expression: "$str.replace($packageName, '.', '/')"
+  - name: projectNameKebab
+    expression: "$str.kebab($projectName)"
+  - name: projectNamePascal
+    expression: "$str.pascal($projectName)"
+
+transforms: []
+postGen: []
+ignore: []

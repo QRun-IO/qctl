@@ -10,7 +10,42 @@
    </parent>
    <artifactId>qctl-integration-tests</artifactId>
    <name>qctl-integration-tests</name>
+   <description>Integration and E2E tests for qctl CLI</description>
+
    <dependencies>
+      <!-- Command modules under test -->
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-core</artifactId>
+         <version>${revision}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-qqq</artifactId>
+         <version>${revision}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-qbit</artifactId>
+         <version>${revision}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-qrun</artifactId>
+         <version>${revision}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-qstudio</artifactId>
+         <version>${revision}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <!-- Test frameworks -->
       <dependency>
          <groupId>org.junit.jupiter</groupId>
          <artifactId>junit-jupiter</artifactId>
@@ -34,5 +69,41 @@
          <artifactId>junit-jupiter</artifactId>
          <scope>test</scope>
       </dependency>
+
+      <!-- Picocli for command parsing -->
+      <dependency>
+         <groupId>info.picocli</groupId>
+         <artifactId>picocli</artifactId>
+         <version>${picocli.version}</version>
+         <scope>test</scope>
+      </dependency>
    </dependencies>
+
+   <build>
+      <plugins>
+         <!-- Run integration tests with failsafe -->
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.5.2</version>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>integration-test</goal>
+                     <goal>verify</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <configuration>
+               <systemPropertyVariables>
+                  <qctl.native.binary>${project.basedir}/../qctl-cli/target/qctl</qctl.native.binary>
+               </systemPropertyVariables>
+               <includes>
+                  <include>**/*IT.java</include>
+                  <include>**/*E2ETest.java</include>
+               </includes>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
 </project>
