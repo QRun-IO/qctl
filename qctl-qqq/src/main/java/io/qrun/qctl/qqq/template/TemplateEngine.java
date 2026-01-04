@@ -120,6 +120,29 @@ public class TemplateEngine
    public int render(Path templateDir, Path targetDir, Map<String, String> variables,
                      TemplateManifest manifest) throws IOException, TemplateRenderException
    {
+      return render(templateDir, targetDir, variables, manifest, MergeOptions.disabled(), null);
+   }
+
+
+
+   /***************************************************************************
+    * Render templates with merge support.
+    *
+    * @param templateDir template source directory
+    * @param targetDir target output directory
+    * @param variables template variables
+    * @param manifest template manifest
+    * @param mergeOptions merge configuration
+    * @param ui console UI for interactive prompts (may be null)
+    * @return number of files created/modified
+    * @throws IOException if file operations fail
+    * @throws TemplateRenderException if template rendering fails
+    * @since 0.2.0
+    ***************************************************************************/
+   public int render(Path templateDir, Path targetDir, Map<String, String> variables,
+                     TemplateManifest manifest, MergeOptions mergeOptions, ConsoleUI ui)
+         throws IOException, TemplateRenderException
+   {
       Path        sourceDir      = resolveTemplateSource(templateDir);
       Set<String> ignorePatterns = manifest.ignore() != null
          ? new HashSet<>(manifest.ignore())
@@ -127,8 +150,11 @@ public class TemplateEngine
       ignorePatterns.add(".git");
       ignorePatterns.add("template.yaml");
 
-      AtomicInteger                  fileCount         = new AtomicInteger();
-      AtomicReference<Exception>     renderError       = new AtomicReference<>();
+      ConsoleUI effectiveUi = ui != null ? ui : new ConsoleUI();
+      MergeStrategy mergeStrategy = new MergeStrategy(mergeOptions, effectiveUi);
+
+      AtomicInteger              fileCount   = new AtomicInteger();
+      AtomicReference<Exception> renderError = new AtomicReference<>();
 
       Files.walkFileTree(sourceDir, new SimpleFileVisitor<>()
       {
@@ -172,18 +198,56 @@ public class TemplateEngine
                String renderedPath = renderPath(relativePath.toString(), variables);
                Path   targetPath   = targetDir.resolve(renderedPath);
 
+               //////////////////////////////////////////////////////////////////
+               // Prepare content for merge decision                           //
+               //////////////////////////////////////////////////////////////////
+               String rendered;
                if(isBinaryFile(file) || isVerbatimFile(file))
                {
-                  Files.copy(file, targetPath);
+                  rendered = null;
                }
                else
                {
-                  String content  = Files.readString(file);
-                  String rendered = renderContent(content, variables);
+                  String content = Files.readString(file);
+                  rendered = renderContent(content, variables);
+               }
+
+               //////////////////////////////////////////////////////////////////
+               // Check merge strategy                                         //
+               //////////////////////////////////////////////////////////////////
+               MergeStrategy.MergeAction action = mergeStrategy.determineAction(
+                  renderedPath, targetPath, rendered);
+
+               switch(action)
+               {
+                  case SKIP:
+                     effectiveUi.println("  [skip] " + renderedPath);
+                     return FileVisitResult.CONTINUE;
+
+                  case OVERWRITE:
+                     mergeStrategy.createBackup(targetPath);
+                     effectiveUi.println("  [overwrite] " + renderedPath);
+                     break;
+
+                  case WRITE:
+                  default:
+                     effectiveUi.println("  " + renderedPath);
+                     break;
+               }
+
+               //////////////////////////////////////////////////////////////////
+               // Write the file                                               //
+               //////////////////////////////////////////////////////////////////
+               if(isBinaryFile(file) || isVerbatimFile(file))
+               {
+                  Files.copy(file, targetPath,
+                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+               }
+               else
+               {
                   Files.writeString(targetPath, rendered);
                }
                fileCount.incrementAndGet();
-               System.out.println("  " + renderedPath);
             }
             catch(TemplateRenderException e)
             {
@@ -223,6 +287,27 @@ public class TemplateEngine
    public void renderDryRun(Path templateDir, Path targetDir, Map<String, String> variables,
                             TemplateManifest manifest) throws IOException, TemplateRenderException
    {
+      renderDryRun(templateDir, targetDir, variables, manifest, MergeOptions.disabled());
+   }
+
+
+
+   /***************************************************************************
+    * Preview template rendering with merge support.
+    *
+    * @param templateDir template source directory
+    * @param targetDir target output directory
+    * @param variables template variables
+    * @param manifest template manifest
+    * @param mergeOptions merge configuration
+    * @throws IOException if file operations fail
+    * @throws TemplateRenderException if path rendering fails
+    * @since 0.2.0
+    ***************************************************************************/
+   public void renderDryRun(Path templateDir, Path targetDir, Map<String, String> variables,
+                            TemplateManifest manifest, MergeOptions mergeOptions)
+         throws IOException, TemplateRenderException
+   {
       Path        sourceDir      = resolveTemplateSource(templateDir);
       Set<String> ignorePatterns = manifest.ignore() != null
          ? new HashSet<>(manifest.ignore())
@@ -257,7 +342,34 @@ public class TemplateEngine
             try
             {
                String renderedPath = renderPath(relativePath.toString(), variables);
-               System.out.println("  " + targetDir.resolve(renderedPath));
+               Path   targetPath   = targetDir.resolve(renderedPath);
+
+               //////////////////////////////////////////////////////////////////
+               // Check merge status for preview                               //
+               //////////////////////////////////////////////////////////////////
+               String status = "";
+               if(mergeOptions.enabled())
+               {
+                  if(mergeOptions.matchesExclude(renderedPath))
+                  {
+                     status = "[skip] ";
+                  }
+                  else if(Files.exists(targetPath))
+                  {
+                     boolean hasIncludes = mergeOptions.includePatterns() != null
+                        && !mergeOptions.includePatterns().isEmpty();
+                     if(hasIncludes && mergeOptions.matchesInclude(renderedPath))
+                     {
+                        status = "[overwrite] ";
+                     }
+                     else
+                     {
+                        status = "[skip] ";
+                     }
+                  }
+               }
+
+               System.out.println("  " + status + targetPath);
             }
             catch(TemplateRenderException e)
             {

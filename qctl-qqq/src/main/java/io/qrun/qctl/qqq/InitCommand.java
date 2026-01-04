@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import io.qrun.qctl.qqq.registry.TemplateInfo;
 import io.qrun.qctl.qqq.registry.TemplateRegistry;
 import io.qrun.qctl.qqq.registry.TemplateRegistryFactory;
 import io.qrun.qctl.qqq.template.ConsoleUI;
+import io.qrun.qctl.qqq.template.MergeOptions;
 import io.qrun.qctl.qqq.template.PostGenHookRunner;
 import io.qrun.qctl.qqq.template.PromptRunner;
 import io.qrun.qctl.qqq.template.TemplateEngine;
@@ -86,6 +88,23 @@ public class InitCommand implements Runnable
    @Option(names = {"-v", "--verbose"}, description = "Show detailed error information")
    boolean verbose;
 
+   @Option(names = "--merge", description = "Merge with existing directory (skip existing files)")
+   boolean merge;
+
+   @Option(names = "--include", description = "Include patterns for merge (overwrite matching files)",
+      split = ",")
+   List<String> includePatterns = new ArrayList<>();
+
+   @Option(names = "--exclude", description = "Exclude patterns for merge (protect matching files)",
+      split = ",")
+   List<String> excludePatterns = new ArrayList<>();
+
+   @Option(names = "--interactive", description = "Prompt for each conflicting file in merge mode")
+   boolean interactive;
+
+   @Option(names = "--no-backup", description = "Disable backup creation when overwriting files")
+   boolean noBackup;
+
 
 
    /***************************************************************************
@@ -118,10 +137,10 @@ public class InitCommand implements Runnable
          Path effectiveTargetDir = getTargetDirectory(ui);
 
          // Check target directory
-         if(Files.exists(effectiveTargetDir) && !force)
+         if(Files.exists(effectiveTargetDir) && !force && !merge)
          {
             ui.error("target directory already exists: " + effectiveTargetDir);
-            ui.println("Use --force to overwrite.");
+            ui.println("Use --force to overwrite or --merge to merge with existing.");
             System.exit(ExitCodes.CONFLICT);
          }
 
@@ -162,11 +181,19 @@ public class InitCommand implements Runnable
          // Step 5: Evaluate computed variables
          TemplateEngine engine = new TemplateEngine();
          allVars = new LinkedHashMap<>(engine.evaluateComputed(manifest.computed(), allVars));
+
+         ///////////////////////////////////////////////////////////////////////
+         // Build merge options                                               //
+         ///////////////////////////////////////////////////////////////////////
+         MergeOptions mergeOptions = merge
+            ? new MergeOptions(true, includePatterns, excludePatterns, interactive, !noBackup)
+            : MergeOptions.disabled();
+
          if(dryRun)
          {
             ui.println();
             ui.println("[DRY-RUN] Would create files:");
-            engine.renderDryRun(templatePath, effectiveTargetDir, allVars, manifest);
+            engine.renderDryRun(templatePath, effectiveTargetDir, allVars, manifest, mergeOptions);
          }
          else
          {
@@ -174,8 +201,13 @@ public class InitCommand implements Runnable
             {
                ui.info("Overwriting existing directory...");
             }
+            if(merge && Files.exists(effectiveTargetDir))
+            {
+               ui.info("Merging with existing directory...");
+            }
             Files.createDirectories(effectiveTargetDir);
-            int fileCount = engine.render(templatePath, effectiveTargetDir, allVars, manifest);
+            int fileCount = engine.render(templatePath, effectiveTargetDir, allVars, manifest,
+               mergeOptions, ui);
             ui.println();
             ui.success("Created " + fileCount + " files in " + effectiveTargetDir);
 
