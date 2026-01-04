@@ -4,9 +4,20 @@ Last updated: 2026-01-03
 
 ## Current Status
 
-**Stories #18-24 complete.** Velocity template engine, computed variables, transforms, manifest v2, templates-hub migration, Voyage mock API, and prompt validation all implemented. Ready for Story #25 (error messages).
+**Stories #18-25 complete.** All qqq template system stories finished except #26 (merge mode). Ready for Story #26 or to start Epic #11 (qbit package management).
 
 ## Recently Completed
+
+### Story #25 - Improve Error Messages (2026-01-04)
+
+Implemented structured error handling with recovery suggestions:
+- Created `SuggestionEngine` with Levenshtein distance for fuzzy matching
+- Created `TemplateError` with categories mapped to exit codes
+- Created `ErrorFormatter` for consistent ANSI-colored output
+- Added "Did you mean?" suggestions for mistyped template names
+- Added `--verbose` flag to show stack traces
+- Added 27 unit tests (13 SuggestionEngine, 6 TemplateError, 8 ErrorFormatter)
+- Updated InitCommand and ListCommand to use structured errors
 
 ### Story #24 - Add Prompt Validation (2026-01-03)
 
@@ -196,8 +207,8 @@ Created comprehensive roadmap and GitHub project structure:
 5. ~~#22 - Migrate templates-hub to Velocity~~ DONE
 6. ~~#23 - Integrate template listing with Voyage mock~~ DONE
 7. ~~#24 - Add prompt validation~~ DONE
-8. #25 - Improve error messages (next)
-9. #26 - Implement --merge mode
+8. ~~#25 - Improve error messages~~ DONE
+9. #26 - Implement --merge mode (next)
 
 **Epic #11 - qbit Package Management** (after qqq):
 1. #27 - qbit search command
