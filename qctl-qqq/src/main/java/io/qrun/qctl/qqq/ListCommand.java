@@ -14,7 +14,9 @@ package io.qrun.qctl.qqq;
 
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.List;
+import io.qrun.qctl.qqq.error.ErrorFormatter;
 import io.qrun.qctl.qqq.registry.TemplateInfo;
 import io.qrun.qctl.qqq.registry.TemplateRegistry;
 import io.qrun.qctl.qqq.registry.TemplateRegistryFactory;
@@ -39,6 +41,9 @@ public class ListCommand implements Runnable
 
    @Option(names = "--refresh", description = "Bypass cache and fetch fresh data")
    boolean refresh;
+
+   @Option(names = {"-v", "--verbose"}, description = "Show detailed error information")
+   boolean verbose;
 
 
 
@@ -93,7 +98,11 @@ public class ListCommand implements Runnable
       }
       catch(IOException e)
       {
-         System.err.println("error: Failed to fetch templates: " + e.getMessage());
+         ErrorFormatter formatter = new ErrorFormatter(verbose);
+         String hint = e instanceof UnknownHostException
+            ? "Check your network connection and try again"
+            : "Run with --refresh to bypass cache";
+         System.err.print(formatter.format(e, hint));
          System.exit(ExitCodes.NETWORK);
       }
    }

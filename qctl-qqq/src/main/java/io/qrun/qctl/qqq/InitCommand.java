@@ -14,12 +14,16 @@ package io.qrun.qctl.qqq;
 
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import io.qrun.qctl.qqq.error.ErrorFormatter;
+import io.qrun.qctl.qqq.error.SuggestionEngine;
+import io.qrun.qctl.qqq.error.TemplateError;
 import io.qrun.qctl.qqq.registry.TemplateInfo;
 import io.qrun.qctl.qqq.registry.TemplateRegistry;
 import io.qrun.qctl.qqq.registry.TemplateRegistryFactory;
@@ -78,6 +82,9 @@ public class InitCommand implements Runnable
 
    @Option(names = "--no-prompt", description = "Disable interactive prompts (use defaults)")
    boolean noPrompt;
+
+   @Option(names = {"-v", "--verbose"}, description = "Show detailed error information")
+   boolean verbose;
 
 
 
@@ -197,17 +204,34 @@ public class InitCommand implements Runnable
       }
       catch(TemplateRenderException e)
       {
-         ui.error("Template error: " + e.getMessage());
-         System.exit(ExitCodes.VALIDATION);
+         ErrorFormatter formatter = new ErrorFormatter(verbose);
+         TemplateError error = new TemplateError(
+            TemplateError.ErrorCategory.RENDER_ERROR,
+            e.getMessage(),
+            "Check template syntax and ensure all variables are defined"
+         );
+         System.err.print(formatter.format(error));
+         System.exit(error.getExitCode());
       }
       catch(IOException e)
       {
-         ui.error(e.getMessage());
+         ErrorFormatter formatter = new ErrorFormatter(verbose);
+         String hint = e instanceof UnknownHostException
+            ? "Check your network connection and try again"
+            : null;
+         System.err.print(formatter.format(e, hint));
          System.exit(ExitCodes.GENERIC);
+      }
+      catch(TemplateError e)
+      {
+         ErrorFormatter formatter = new ErrorFormatter(verbose);
+         System.err.print(formatter.format(e));
+         System.exit(e.getExitCode());
       }
       catch(Exception e)
       {
-         ui.error(e.getMessage());
+         ErrorFormatter formatter = new ErrorFormatter(verbose);
+         System.err.print(formatter.format(e, null));
          System.exit(ExitCodes.GENERIC);
       }
    }
@@ -236,8 +260,23 @@ public class InitCommand implements Runnable
          return selected;
       }
 
-      // Template not found - prompt for selection
+      /////////////////////////////////////////////////////////////////////////
+      // Template not found - show error with suggestions                    //
+      /////////////////////////////////////////////////////////////////////////
+      List<String> templateIds = templates.stream().map(TemplateInfo::id).toList();
+      SuggestionEngine suggestionEngine = new SuggestionEngine();
+      List<String> suggestions = suggestionEngine.findSimilar(templateName, templateIds);
+
       ui.error("Template '" + templateName + "' not found.");
+      if(!suggestions.isEmpty())
+      {
+         ui.println();
+         ui.println("Did you mean?");
+         for(String suggestion : suggestions)
+         {
+            ui.println("  " + suggestion);
+         }
+      }
       ui.println();
 
       // Find default index
