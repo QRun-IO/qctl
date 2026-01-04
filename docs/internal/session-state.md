@@ -4,9 +4,30 @@ Last updated: 2026-01-03
 
 ## Current Status
 
-**Stories #18-23 complete.** Velocity template engine, computed variables, transforms, manifest v2, templates-hub migration, and Voyage mock API integration all implemented. Ready for Story #24 (prompt validation).
+**Stories #18-24 complete.** Velocity template engine, computed variables, transforms, manifest v2, templates-hub migration, Voyage mock API, and prompt validation all implemented. Ready for Story #25 (error messages).
 
 ## Recently Completed
+
+### Story #24 - Add Prompt Validation (2026-01-03)
+
+Implemented input validation with retry loop for template prompts:
+- Created `PromptValidation` record for validation rules (pattern, length, range, enum)
+- Created `PromptValidator` class with support for required, pattern, length, range, and enum validation
+- Updated `PromptRunner` to validate input and re-prompt on failure
+- Added validation for `--var` CLI overrides with fallback to interactive prompt
+- Added `ConsoleUI` methods for validation feedback (error checkmark, success checkmark, warning)
+- Added 20 unit tests for PromptValidator
+
+Manifest schema now supports:
+```yaml
+prompts:
+  - name: packageName
+    message: "Java package"
+    required: true
+    validation:
+      pattern: "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      message: "Must be a valid Java package name"
+```
 
 ### Story #23 - Voyage Mock API Integration (2026-01-03)
 
@@ -174,8 +195,8 @@ Created comprehensive roadmap and GitHub project structure:
 4. ~~#21 - Update template manifest schema v2~~ DONE
 5. ~~#22 - Migrate templates-hub to Velocity~~ DONE
 6. ~~#23 - Integrate template listing with Voyage mock~~ DONE
-7. #24 - Add prompt validation (next)
-8. #25 - Improve error messages
+7. ~~#24 - Add prompt validation~~ DONE
+8. #25 - Improve error messages (next)
 9. #26 - Implement --merge mode
 
 **Epic #11 - qbit Package Management** (after qqq):
