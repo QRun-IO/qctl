@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -79,7 +81,55 @@ public record TemplateManifest(
       {
          throw new IOException("template.yaml not found in " + templateDir);
       }
-      return YAML.readValue(manifestPath.toFile(), TemplateManifest.class);
+
+      try
+      {
+         return YAML.readValue(manifestPath.toFile(), TemplateManifest.class);
+      }
+      catch(JsonProcessingException e)
+      {
+         throw new IOException(formatYamlError(e, manifestPath), e);
+      }
+   }
+
+
+
+   /***************************************************************************
+    * Format a YAML parsing error with line and column information.
+    *
+    * @param e the JSON processing exception
+    * @param manifestPath path to the manifest file
+    * @return formatted error message
+    * @since 0.2.0
+    ***************************************************************************/
+   private static String formatYamlError(JsonProcessingException e, Path manifestPath)
+   {
+      JsonLocation location = e.getLocation();
+      StringBuilder sb = new StringBuilder();
+      sb.append("YAML parse error in ").append(manifestPath.getFileName());
+
+      if(location != null)
+      {
+         int line = location.getLineNr();
+         int col = location.getColumnNr();
+         sb.append(" (line ").append(line);
+         if(col >= 0)
+         {
+            sb.append(", column ").append(col);
+         }
+         sb.append(")");
+      }
+
+      //////////////////////////////////////////////////////////////////////////
+      // Extract the original error message without the location suffix       //
+      //////////////////////////////////////////////////////////////////////////
+      String originalMessage = e.getOriginalMessage();
+      if(originalMessage != null && !originalMessage.isEmpty())
+      {
+         sb.append(": ").append(originalMessage);
+      }
+
+      return sb.toString();
    }
 
 

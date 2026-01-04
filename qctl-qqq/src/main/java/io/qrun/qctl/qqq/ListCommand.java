@@ -16,6 +16,7 @@ package io.qrun.qctl.qqq;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import io.qrun.qctl.qqq.error.ErrorFormatter;
 import io.qrun.qctl.qqq.registry.TemplateInfo;
 import io.qrun.qctl.qqq.registry.TemplateRegistry;
@@ -31,7 +32,7 @@ import picocli.CommandLine.Option;
  * @since 0.1.0
  *******************************************************************************/
 @Command(name = "list", description = "List available project templates")
-public class ListCommand implements Runnable
+public class ListCommand implements Callable<Integer>
 {
    private static final String ANSI_BOLD = "\u001B[1m";
    private static final String ANSI_CYAN = "\u001B[36m";
@@ -59,7 +60,7 @@ public class ListCommand implements Runnable
 
 
    @Override
-   public void run()
+   public Integer call()
    {
       try
       {
@@ -76,7 +77,7 @@ public class ListCommand implements Runnable
          if(templates.isEmpty())
          {
             System.out.println("No templates available.");
-            return;
+            return ExitCodes.SUCCESS;
          }
 
          System.out.println(ANSI_BOLD + "Available Templates:" + ANSI_RESET + "\n");
@@ -95,6 +96,8 @@ public class ListCommand implements Runnable
          }
 
          System.out.println("Use: qctl qqq init <template-id> -o <target-dir>");
+
+         return ExitCodes.SUCCESS;
       }
       catch(IOException e)
       {
@@ -103,7 +106,7 @@ public class ListCommand implements Runnable
             ? "Check your network connection and try again"
             : "Run with --refresh to bypass cache";
          System.err.print(formatter.format(e, hint));
-         System.exit(ExitCodes.NETWORK);
+         return ExitCodes.NETWORK;
       }
    }
 }

@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import io.qrun.qctl.qqq.error.ErrorFormatter;
 import io.qrun.qctl.qqq.error.SuggestionEngine;
 import io.qrun.qctl.qqq.error.TemplateError;
@@ -52,7 +53,7 @@ import picocli.CommandLine.Parameters;
  *******************************************************************************/
 @Command(name = "init", description = "Initialize a new project from a template",
    mixinStandardHelpOptions = true)
-public class InitCommand implements Runnable
+public class InitCommand implements Callable<Integer>
 {
    private static final String DEFAULT_TEMPLATE = "new-qqq-application";
    private static final String DEFAULT_PROJECT_DIR = "my-qqq-app";
@@ -119,7 +120,7 @@ public class InitCommand implements Runnable
 
 
    @Override
-   public void run()
+   public Integer call()
    {
       ConsoleUI ui = new ConsoleUI();
 
@@ -141,7 +142,7 @@ public class InitCommand implements Runnable
          {
             ui.error("target directory already exists: " + effectiveTargetDir);
             ui.println("Use --force to overwrite or --merge to merge with existing.");
-            System.exit(ExitCodes.CONFLICT);
+            return ExitCodes.CONFLICT;
          }
 
          // Step 3: Download template from registry
@@ -165,7 +166,7 @@ public class InitCommand implements Runnable
                ui.error("Template requires qctl " + manifest.minimumQctlVersion() + " or later");
                ui.println("Current version: " + currentVersion);
                ui.println("Please upgrade qctl to use this template.");
-               System.exit(ExitCodes.VALIDATION);
+               return ExitCodes.VALIDATION;
             }
          }
 
@@ -233,6 +234,8 @@ public class InitCommand implements Runnable
          ui.println("Next steps:");
          ui.println("  cd " + effectiveTargetDir);
          ui.println("  mvn clean verify");
+
+         return ExitCodes.SUCCESS;
       }
       catch(TemplateRenderException e)
       {
@@ -243,7 +246,7 @@ public class InitCommand implements Runnable
             "Check template syntax and ensure all variables are defined"
          );
          System.err.print(formatter.format(error));
-         System.exit(error.getExitCode());
+         return error.getExitCode();
       }
       catch(IOException e)
       {
@@ -252,19 +255,19 @@ public class InitCommand implements Runnable
             ? "Check your network connection and try again"
             : null;
          System.err.print(formatter.format(e, hint));
-         System.exit(ExitCodes.GENERIC);
+         return ExitCodes.GENERIC;
       }
       catch(TemplateError e)
       {
          ErrorFormatter formatter = new ErrorFormatter(verbose);
          System.err.print(formatter.format(e));
-         System.exit(e.getExitCode());
+         return e.getExitCode();
       }
       catch(Exception e)
       {
          ErrorFormatter formatter = new ErrorFormatter(verbose);
          System.err.print(formatter.format(e, null));
-         System.exit(ExitCodes.GENERIC);
+         return ExitCodes.GENERIC;
       }
    }
 

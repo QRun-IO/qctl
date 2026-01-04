@@ -85,17 +85,26 @@ public class TransformExecutor
    {
       String type = transform.type();
 
-      if(Transform.TYPE_DELETE.equals(type))
+      try
       {
-         executeDelete(targetDir, transform.pattern());
+         if(Transform.TYPE_DELETE.equals(type))
+         {
+            executeDelete(targetDir, transform.pattern());
+         }
+         else if(Transform.TYPE_RENAME.equals(type))
+         {
+            executeRename(targetDir, transform.pattern(), transform.replacement(), variables);
+         }
+         else
+         {
+            throw new TemplateRenderException("Invalid transform type: " + type,
+               "manifest.yaml (transforms section)");
+         }
       }
-      else if(Transform.TYPE_RENAME.equals(type))
+      catch(IOException e)
       {
-         executeRename(targetDir, transform.pattern(), transform.replacement(), variables);
-      }
-      else
-      {
-         throw new TemplateRenderException("Invalid transform type: " + type);
+         throw new IOException("Transform failed for pattern '" + transform.pattern()
+            + "' in " + targetDir + ": " + e.getMessage(), e);
       }
    }
 
