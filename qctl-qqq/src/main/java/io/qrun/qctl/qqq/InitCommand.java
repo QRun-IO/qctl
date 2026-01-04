@@ -20,14 +20,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import io.qrun.qctl.qqq.registry.TemplateInfo;
+import io.qrun.qctl.qqq.registry.TemplateRegistry;
+import io.qrun.qctl.qqq.registry.TemplateRegistryFactory;
 import io.qrun.qctl.qqq.template.ConsoleUI;
 import io.qrun.qctl.qqq.template.PostGenHookRunner;
 import io.qrun.qctl.qqq.template.PromptRunner;
 import io.qrun.qctl.qqq.template.TemplateEngine;
 import io.qrun.qctl.qqq.template.TemplateManifest;
 import io.qrun.qctl.qqq.template.TemplateRenderException;
-import io.qrun.qctl.qqq.template.TemplateResolver;
-import io.qrun.qctl.qqq.template.TemplatesHub;
 import io.qrun.qctl.qqq.template.TransformExecutor;
 import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
@@ -102,11 +103,9 @@ public class InitCommand implements Runnable
          ui.subtitle("Initialize a new QQQ project");
          ui.println();
 
-         // Step 1: Template selection
-         TemplatesHub hub = new TemplatesHub();
-         TemplatesHub.TemplateEntry hubEntry = selectTemplate(hub, ui);
-         TemplatesHub.TemplatesIndex index = hub.fetchIndex();
-         String gitSource = hubEntry.getGitUrl(index.registry());
+         // Step 1: Template selection from registry
+         TemplateRegistry registry = TemplateRegistryFactory.getRegistry();
+         TemplateInfo templateInfo = selectTemplate(registry, ui);
 
          // Step 2: Get target directory
          Path effectiveTargetDir = getTargetDirectory(ui);
@@ -119,26 +118,13 @@ public class InitCommand implements Runnable
             System.exit(ExitCodes.CONFLICT);
          }
 
-         // Step 3: Resolve template
+         // Step 3: Download template from registry
          ui.println();
-         ui.info("Resolving template...");
-         TemplateResolver resolver = new TemplateResolver();
-         Path templatePath = resolver.resolve(gitSource, version);
+         ui.info("Downloading template...");
+         Path templatePath = registry.downloadTemplate(templateInfo.id(), version);
 
-         // Get manifest from hub entry
-         TemplateManifest manifest = new TemplateManifest(
-            hubEntry.schemaVersion(),
-            hubEntry.id(),
-            hubEntry.name(),
-            hubEntry.version(),
-            hubEntry.description(),
-            hubEntry.minimumQctlVersion(),
-            hubEntry.prompts(),
-            hubEntry.computed(),
-            hubEntry.transforms(),
-            hubEntry.postGen(),
-            hubEntry.ignore()
-         );
+         // Get manifest from template info
+         TemplateManifest manifest = templateInfo.toManifest();
 
          // Check minimum qctl version
          if(manifest.minimumQctlVersion() != null)
@@ -231,21 +217,21 @@ public class InitCommand implements Runnable
    /***************************************************************************
     * Select template - use provided name or prompt interactively.
     *
-    * @param hub templates hub
+    * @param registry template registry
     * @param ui console UI
-    * @return selected template entry
-    * @throws IOException if hub cannot be fetched
+    * @return selected template info
+    * @throws IOException if registry cannot be fetched
     * @since 0.1.0
     ***************************************************************************/
-   private TemplatesHub.TemplateEntry selectTemplate(TemplatesHub hub, ConsoleUI ui) throws IOException
+   private TemplateInfo selectTemplate(TemplateRegistry registry, ConsoleUI ui) throws IOException
    {
-      List<TemplatesHub.TemplateEntry> templates = hub.fetchIndex().templates();
+      List<TemplateInfo> templates = registry.listTemplates();
 
       // If template name provided and found, use it
-      Optional<TemplatesHub.TemplateEntry> entry = hub.findById(templateName);
+      Optional<TemplateInfo> entry = registry.getTemplate(templateName);
       if(entry.isPresent())
       {
-         TemplatesHub.TemplateEntry selected = entry.get();
+         TemplateInfo selected = entry.get();
          ui.showValue("Template", selected.name(), selected.id());
          return selected;
       }
@@ -268,8 +254,8 @@ public class InitCommand implements Runnable
       return ui.promptSelect(
          "Select a template:",
          templates,
-         TemplatesHub.TemplateEntry::name,
-         TemplatesHub.TemplateEntry::description,
+         TemplateInfo::name,
+         TemplateInfo::description,
          defaultIndex
       );
    }

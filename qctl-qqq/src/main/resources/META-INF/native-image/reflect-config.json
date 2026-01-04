@@ -1,5 +1,14 @@
 [
   {
+    "name": "io.qrun.qctl.qqq.registry.TemplateInfo",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
     "name": "io.qrun.qctl.qqq.template.TemplatesHub$TemplatesIndex",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

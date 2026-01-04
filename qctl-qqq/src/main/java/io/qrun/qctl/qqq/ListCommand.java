@@ -14,13 +14,17 @@ package io.qrun.qctl.qqq;
 
 
 import java.io.IOException;
-import io.qrun.qctl.qqq.template.TemplatesHub;
+import java.util.List;
+import io.qrun.qctl.qqq.registry.TemplateInfo;
+import io.qrun.qctl.qqq.registry.TemplateRegistry;
+import io.qrun.qctl.qqq.registry.TemplateRegistryFactory;
 import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 
 /*******************************************************************************
- * List available project templates from the hub.
+ * List available project templates from the registry.
  *
  * @since 0.1.0
  *******************************************************************************/
@@ -30,7 +34,11 @@ public class ListCommand implements Runnable
    private static final String ANSI_BOLD = "\u001B[1m";
    private static final String ANSI_CYAN = "\u001B[36m";
    private static final String ANSI_DIM = "\u001B[2m";
+   private static final String ANSI_GREEN = "\u001B[32m";
    private static final String ANSI_RESET = "\u001B[0m";
+
+   @Option(names = "--refresh", description = "Bypass cache and fetch fresh data")
+   boolean refresh;
 
 
 
@@ -50,11 +58,17 @@ public class ListCommand implements Runnable
    {
       try
       {
-         System.out.println("Fetching templates from hub...\n");
-         TemplatesHub hub   = new TemplatesHub();
-         var          index = hub.fetchIndex();
+         System.out.println("Fetching templates from registry...\n");
+         TemplateRegistry registry = TemplateRegistryFactory.getRegistry();
 
-         if(index.templates() == null || index.templates().isEmpty())
+         if(refresh)
+         {
+            registry.refresh();
+         }
+
+         List<TemplateInfo> templates = registry.listTemplates();
+
+         if(templates.isEmpty())
          {
             System.out.println("No templates available.");
             return;
@@ -62,9 +76,10 @@ public class ListCommand implements Runnable
 
          System.out.println(ANSI_BOLD + "Available Templates:" + ANSI_RESET + "\n");
 
-         for(var template : index.templates())
+         for(TemplateInfo template : templates)
          {
-            System.out.println(ANSI_CYAN + "  " + template.id() + ANSI_RESET);
+            System.out.println(ANSI_CYAN + "  " + template.id() + ANSI_RESET
+               + "  " + ANSI_GREEN + "v" + template.version() + ANSI_RESET);
             System.out.println("    " + template.name());
             System.out.println("    " + ANSI_DIM + template.description() + ANSI_RESET);
             if(template.tags() != null && !template.tags().isEmpty())
@@ -74,7 +89,7 @@ public class ListCommand implements Runnable
             System.out.println();
          }
 
-         System.out.println("Use: qctl qqq init <template-id> <target-dir>");
+         System.out.println("Use: qctl qqq init <template-id> -o <target-dir>");
       }
       catch(IOException e)
       {
