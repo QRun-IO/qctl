@@ -72,26 +72,26 @@ qctl
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Data Flow: `qctl qqq new`
+## Data Flow: `qctl qqq init`
 
 ```
-User: qctl qqq new voyage --template qqq-app
+User: qctl qqq init qqq-app my-project
 
 1. Load config (defaults → global → project → env → flags)
 2. Resolve template:
    - Check local cache for "qqq-app" template
-   - If missing/outdated, fetch from templates.qrun.io
+   - If missing/outdated, fetch from templates-hub
    - Verify signature (warn-only in V1)
-3. Prompt for variables (or use --non-interactive defaults)
-4. Render template via Handlebars:
-   - Process template.yaml manifest
-   - Apply variable substitutions
-   - Copy/transform files to target directory
-5. Post-generation hooks:
-   - Run `build` phase (mvn compile)
-   - Run `run` phase (start app)
-   - Run `healthcheck` phase (verify startup)
-6. Output success message with next steps
+3. Prompt for variables (or use --no-prompt defaults)
+4. Evaluate computed variables (e.g., packagePath from packageName)
+5. Render template via Apache Velocity:
+   - Process template.yaml manifest (schema v2)
+   - Substitute $variables in file content and paths
+   - Convert __VARNAME__ to $VARNAME in paths (CI-safe syntax)
+   - Apply transforms (delete patterns)
+   - Copy rendered files to target directory
+6. Post-generation hooks (if defined)
+7. Output success message with next steps
 ```
 
 ## Configuration Precedence
@@ -136,21 +136,39 @@ defaults    ~/...qctl.yaml   ./qctl.yaml       QCTL_*      --flag
 - Streaming logs
 - Promote/rollback workflows
 
-## Template Structure (qqq-app)
+## Template Structure (new-qqq-application)
 
 ```
-templates/qqq-app/
-├── template.yaml           # Manifest with prompts and hooks
-├── README.md.hbs           # Handlebars template
-├── pom.xml.hbs
-├── src/
-│   └── main/
-│       └── java/
-│           └── {{packagePath}}/
-│               ├── Application.java.hbs
-│               └── {{name}}QInstance.java.hbs
-└── .qctl/
-    └── template-version    # Tracks template version for upgrades
+templates/new-qqq-application/
+├── template.yaml           # Manifest with prompts, computed vars, transforms
+├── template/               # Template files directory
+│   ├── README.md           # Velocity template with $variables
+│   ├── pom.xml             # Maven POM with $groupId, $artifactId, etc.
+│   └── src/
+│       └── main/
+│           └── java/
+│               └── $packagePath/        # Path variable substitution
+│                   └── Application.java # Uses $packageName, $projectName
+```
+
+**template.yaml Schema v2**:
+```yaml
+schemaVersion: 2
+id: new-qqq-application
+name: New QQQ Application
+version: 1.0.0
+prompts:
+  - name: packageName
+    message: Java package name
+    type: text
+    defaultValue: com.example
+    required: true
+computed:
+  - name: packagePath
+    expression: "$str.replace($packageName, '.', '/')"
+transforms:
+  - type: delete
+    pattern: "**/.gitkeep"
 ```
 
 ## Key Files
@@ -162,10 +180,30 @@ templates/qqq-app/
 
 ## Technology Stack
 
-- **Language**: Java 21 (Temurin)
+- **Language**: Java 21 (Temurin/GraalVM)
 - **CLI**: Picocli 4.7.5
 - **Config**: Jackson YAML + JSON Schema validation
 - **HTTP**: JDK HttpClient with retry/backoff
-- **Templates**: Handlebars 4.4.0
+- **Templates**: Apache Velocity 2.4.1
 - **Build**: Maven 3.9+, GraalVM native-image
 - **Test**: JUnit 5, AssertJ, Mockito, Testcontainers
+
+## Testing Architecture
+
+```
+qctl-integration-tests/
+├── src/test/java/io/qrun/qctl/e2e/
+│   ├── InitCommandE2ETest.java      # CLI flag tests
+│   ├── InitCommandFullE2ETest.java  # Full variable/transform tests
+│   └── harness/
+│       ├── CommandTestHarness.java  # In-process command execution
+│       ├── TestTemplateRegistry.java # Fixture-based registry
+│       └── TestableConsoleUI.java   # Simulated user input
+└── src/test/resources/fixtures/templates/
+    ├── test-minimal/                # Basic template
+    ├── test-computed-vars/          # Computed variable tests
+    ├── test-full-substitution/      # Variable replacement tests
+    └── test-transforms/             # Transform operation tests
+```
+
+**Path Variable Convention**: Use `__VARNAME__` in directory names for templates. The engine converts this to `$VARNAME` before Velocity processing, avoiding shell/Maven interpretation issues.

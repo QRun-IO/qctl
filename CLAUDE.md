@@ -35,16 +35,17 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-21.jdk/Contents/Home mvn cle
 
 ```
 qctl/
-├── qctl-shared     # DTOs, ExitCodes, SPI interfaces, utilities
-├── qctl-core       # Config, HTTP client, auth, cache, logging, Main entrypoint
-├── qctl-qqq        # Template scaffolding (init, list) with Handlebars
-├── qctl-qbit       # Package management commands, lockfile handling
-├── qctl-qrun       # OCI packaging and deployment commands
-├── qctl-qstudio    # AI planning commands (offline V1)
-├── qctl-cli        # Aggregator for native image build (has native profile)
-├── docs/           # Architecture and design documentation
-├── packaging/      # Distribution manifests (Homebrew, Scoop, AUR, Docker)
-└── codestyle/      # Checkstyle config and license headers
+├── qctl-shared            # DTOs, ExitCodes, SPI interfaces, utilities
+├── qctl-core              # Config, HTTP client, auth, cache, logging, Main entrypoint
+├── qctl-qqq               # Template scaffolding (init, list) with Velocity
+├── qctl-qbit              # Package management commands, lockfile handling
+├── qctl-qrun              # OCI packaging and deployment commands
+├── qctl-qstudio           # AI planning commands (offline V1)
+├── qctl-cli               # Aggregator for native image build (has native profile)
+├── qctl-integration-tests # E2E and integration tests with fixture templates
+├── docs/                  # Architecture and design documentation
+├── packaging/             # Distribution manifests (Homebrew, Scoop, AUR, Docker)
+└── codestyle/             # Checkstyle config and license headers
 ```
 
 ## Architecture
@@ -53,7 +54,7 @@ qctl/
 
 **CLI Framework**: Picocli with annotation-based commands. Main entrypoint in `qctl-core/Main.java`.
 
-**Template System**: Templates fetched from [QRun-IO/templates-hub](https://github.com/QRun-IO/templates-hub). Handlebars for rendering with custom helpers (camelCase, pascalCase, etc.).
+**Template System**: Templates fetched from [QRun-IO/templates-hub](https://github.com/QRun-IO/templates-hub). Apache Velocity for rendering with StringTool helpers (`$str.kebab()`, `$str.pascal()`, `$str.replace()`). Supports computed variables and transforms. Path variables use `__VARNAME__` or `$VARNAME` syntax.
 
 **Interactive Commands**: All console I/O goes through `ConsoleUI` class (`qctl-qqq/template/ConsoleUI.java`). This separates UI from logic.
 
@@ -145,14 +146,45 @@ docker run ghcr.io/qrun-io/qctl --help
 ## Native Image Notes
 
 - Native profile is in `qctl-cli/pom.xml` (activated with `-Pnative`)
-- Handlebars requires `--initialize-at-run-time=com.github.jknack.handlebars.helper.DefaultHelperRegistry`
+- Velocity requires runtime initialization for template parsing
 - Jackson records need reflection config in `META-INF/native-image/reflect-config.json`
 - Resources config in `META-INF/native-image/resource-config.json`
 
 ## Testing
 
-- JUnit 5 + AssertJ + Mockito
-- Run: `mvn test` or `mvn verify`
+**Frameworks**: JUnit 5 + AssertJ + Mockito
+
+**Run Tests**:
+```bash
+mvn test                    # Unit tests only
+mvn verify                  # Unit + integration tests
+mvn test -pl qctl-integration-tests  # E2E tests only
+```
+
+**Test Modules**:
+- Unit tests in each module's `src/test/java/`
+- Integration tests in `qctl-integration-tests/`
+
+**E2E Test Infrastructure** (`qctl-integration-tests/`):
+- `CommandTestHarness` - In-process command execution with stdout/stderr capture
+- `TestTemplateRegistry` - Fixture-based template registry for offline testing
+- `TestableConsoleUI` - Simulated user input for interactive prompts
+- `ExitCodeAssertions` - Fluent assertions for exit codes
+
+**Test Fixtures** (`src/test/resources/fixtures/templates/`):
+| Fixture | Purpose |
+|---------|---------|
+| `test-minimal` | Basic template with no prompts |
+| `test-with-prompts` | Template with interactive prompts |
+| `test-full-substitution` | Tests variable replacement in content |
+| `test-computed-vars` | Tests computed variables (packagePath) |
+| `test-transforms` | Tests delete transforms |
+| `test-variable-typo` | Tests "Did you mean?" suggestions |
+
+**Path Variable Syntax**:
+- Use `__VARNAME__` in directory names (converted to `$VARNAME` at runtime)
+- Avoids shell/Maven interpretation of `$` characters
+- Example: `template/src/main/java/__packagePath__/App.java`
 
 ## Session Continuity
 

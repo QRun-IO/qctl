@@ -147,23 +147,30 @@ Templates are managed in [QRun-IO/templates-hub](https://github.com/QRun-IO/temp
 
 ```
 qctl/
-├── qctl-cli/       # Native image entry point (aggregates all modules)
-├── qctl-core/      # Core commands (auth, cache)
-├── qctl-shared/    # Shared utilities and constants
-├── qctl-qqq/       # Scaffolding commands (init, list)
-├── qctl-qbit/      # Package management commands
-├── qctl-qrun/      # Deployment commands
-├── qctl-qstudio/   # Planning commands
-├── docs/           # Architecture and design documentation
-├── packaging/      # Distribution manifests (Homebrew, Scoop, AUR, Docker)
-└── codestyle/      # Checkstyle config and license headers
+├── qctl-cli/              # Native image entry point (aggregates all modules)
+├── qctl-core/             # Core commands (auth, cache)
+├── qctl-shared/           # Shared utilities and constants
+├── qctl-qqq/              # Scaffolding commands (init, list)
+├── qctl-qbit/             # Package management commands
+├── qctl-qrun/             # Deployment commands
+├── qctl-qstudio/          # Planning commands
+├── qctl-integration-tests/ # E2E tests with fixture templates
+├── docs/                  # Architecture and design documentation
+├── packaging/             # Distribution manifests (Homebrew, Scoop, AUR, Docker)
+└── codestyle/             # Checkstyle config and license headers
 ```
 
 ## Development
 
 ```bash
-# Run tests
+# Run all tests
 mvn clean verify
+
+# Run unit tests only
+mvn test
+
+# Run E2E tests only
+mvn test -pl qctl-integration-tests
 
 # Build native image (requires GraalVM)
 JAVA_HOME=/path/to/graalvm mvn clean package -DskipTests -Pnative
@@ -172,6 +179,18 @@ JAVA_HOME=/path/to/graalvm mvn clean package -DskipTests -Pnative
 mvn clean package -DskipTests
 java -jar qctl-cli/target/qctl-cli-0.1.0-SNAPSHOT.jar --help
 ```
+
+### Testing
+
+The project includes comprehensive E2E tests in `qctl-integration-tests/`:
+
+| Test Class | Coverage |
+|------------|----------|
+| `InitCommandE2ETest` | CLI flags and basic init behavior |
+| `InitCommandFullE2ETest` | Variable substitution, computed vars, transforms |
+| `NativeBinaryE2ETest` | Native binary smoke tests (requires build) |
+
+Test fixtures in `src/test/resources/fixtures/templates/` provide offline, deterministic testing.
 
 ## Releasing
 
