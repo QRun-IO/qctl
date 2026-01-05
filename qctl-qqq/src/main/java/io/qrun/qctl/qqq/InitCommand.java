@@ -14,6 +14,7 @@ package io.qrun.qctl.qqq;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import io.qrun.qctl.qqq.error.ErrorFormatter;
 import io.qrun.qctl.qqq.error.SuggestionEngine;
@@ -156,11 +158,7 @@ public class InitCommand implements Callable<Integer>
          // Check minimum qctl version
          if(manifest.minimumQctlVersion() != null)
          {
-            String currentVersion = getClass().getPackage().getImplementationVersion();
-            if(currentVersion == null)
-            {
-               currentVersion = "0.0.0-dev";
-            }
+            String currentVersion = getVersionFromProperties();
             if(!isVersionSatisfied(currentVersion, manifest.minimumQctlVersion()))
             {
                ui.error("Template requires qctl " + manifest.minimumQctlVersion() + " or later");
@@ -359,6 +357,31 @@ public class InitCommand implements Callable<Integer>
 
       String input = ui.promptText("Project directory", DEFAULT_PROJECT_DIR);
       return Path.of(input);
+   }
+
+
+
+   /***************************************************************************
+    * Get version from version.properties resource file.
+    *
+    * @return version string from properties or "0.0.0-dev" if not found
+    * @since 0.2.0
+    ***************************************************************************/
+   private String getVersionFromProperties()
+   {
+      Properties props = new Properties();
+      try(InputStream is = getClass().getResourceAsStream("/version.properties"))
+      {
+         if(is != null)
+         {
+            props.load(is);
+         }
+      }
+      catch(IOException e)
+      {
+         // Fall back to default
+      }
+      return props.getProperty("version", "0.0.0-dev");
    }
 
 
