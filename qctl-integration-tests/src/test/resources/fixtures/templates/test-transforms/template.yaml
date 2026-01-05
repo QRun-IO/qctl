@@ -1,0 +1,23 @@
+schemaVersion: 2
+id: test-transforms
+name: Transform Test Template
+version: 1.0.0
+description: Template for testing directory and file transforms
+
+prompts:
+  - name: packageName
+    message: Package name
+    type: text
+    defaultValue: com.example
+    required: true
+
+computed:
+  - name: packagePath
+    expression: "$str.replace($packageName, '.', '/')"
+
+transforms:
+  - type: delete
+    pattern: "**/.gitkeep"
+
+postGen: []
+ignore: []

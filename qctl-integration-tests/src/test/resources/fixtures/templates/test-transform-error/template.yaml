@@ -1,0 +1,15 @@
+schemaVersion: 2
+id: test-transform-error
+name: Transform Error Test Template
+version: 1.0.0
+description: Template with invalid transform type
+
+prompts: []
+computed: []
+
+transforms:
+  - type: bogus_transform_type
+    pattern: "**/*.txt"
+
+postGen: []
+ignore: []

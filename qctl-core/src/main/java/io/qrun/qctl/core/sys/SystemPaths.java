@@ -13,9 +13,12 @@
 package io.qrun.qctl.core.sys;
 
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -26,6 +29,8 @@ import java.nio.file.Paths;
  */
 public final class SystemPaths
 {
+   private static final Logger LOG = LoggerFactory.getLogger(SystemPaths.class);
+
    /***************************************************************************
     * Non-instantiable utility class.
     *
@@ -97,15 +102,22 @@ public final class SystemPaths
 
 
 
-   /** Ensures the given directory exists, creating it if needed. */
+   /***************************************************************************
+    * Ensures the given directory exists, creating it if needed.
+    *
+    * @param p directory path to create
+    * @return the same path for fluent usage
+    * @since 0.1.0
+    ***************************************************************************/
    public static Path ensureDir(Path p)
    {
       try
       {
          Files.createDirectories(p);
       }
-      catch(Exception expected)
+      catch(IOException e)
       {
+         LOG.debug("Failed to create directory {}: {}", p, e.getMessage());
       }
       return p;
    }

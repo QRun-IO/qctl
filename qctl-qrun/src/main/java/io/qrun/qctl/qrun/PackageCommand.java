@@ -16,10 +16,10 @@ package io.qrun.qctl.qrun;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import io.qrun.qctl.core.output.Output;
+import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
 
 
@@ -53,7 +53,7 @@ public class PackageCommand implements Runnable
       catch(IOException e)
       {
          System.err.println("qrun package error: " + e.getMessage());
-         System.exit(1);
+         System.exit(ExitCodes.GENERIC);
       }
    }
 }

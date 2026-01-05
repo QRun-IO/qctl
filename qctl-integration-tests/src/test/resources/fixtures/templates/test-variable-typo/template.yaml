@@ -1,0 +1,22 @@
+schemaVersion: 2
+id: test-variable-typo
+name: Variable Typo Test Template
+version: 1.0.0
+description: Template with intentional variable typo for error testing
+
+prompts:
+  - name: projectName
+    message: Project name
+    type: text
+    defaultValue: my-project
+    required: true
+  - name: packageName
+    message: Package name
+    type: text
+    defaultValue: com.example
+    required: true
+
+computed: []
+transforms: []
+postGen: []
+ignore: []

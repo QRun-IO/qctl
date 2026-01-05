@@ -6,7 +6,7 @@
    <parent>
       <groupId>io.qrun.qctl</groupId>
       <artifactId>qctl-parent</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>${revision}</version>
    </parent>
    <artifactId>qctl-qqq</artifactId>
    <name>qctl-qqq</name>
@@ -21,5 +21,56 @@
          <artifactId>qctl-core</artifactId>
          <version>${project.version}</version>
       </dependency>
+      <dependency>
+         <groupId>io.qrun.qctl</groupId>
+         <artifactId>qctl-shared</artifactId>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.velocity</groupId>
+         <artifactId>velocity-engine-core</artifactId>
+         <version>${velocity.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>info.picocli</groupId>
+         <artifactId>picocli-codegen</artifactId>
+         <version>${picocli.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.junit.jupiter</groupId>
+         <artifactId>junit-jupiter</artifactId>
+         <version>${junit.jupiter.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.assertj</groupId>
+         <artifactId>assertj-core</artifactId>
+         <version>${assertj.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.mockito</groupId>
+         <artifactId>mockito-core</artifactId>
+         <version>${mockito.version}</version>
+         <scope>test</scope>
+      </dependency>
    </dependencies>
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <annotationProcessorPaths>
+                  <path>
+                     <groupId>info.picocli</groupId>
+                     <artifactId>picocli-codegen</artifactId>
+                     <version>${picocli.version}</version>
+                  </path>
+               </annotationProcessorPaths>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
 </project>

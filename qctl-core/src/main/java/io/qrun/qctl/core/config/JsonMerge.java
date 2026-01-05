@@ -17,31 +17,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-/**
+/*******************************************************************************
  * Simple deep-merge utility for JSON objects.
- */
+ *
+ * Why: Config loading overlays several sources (defaults, files, env),
+ * and we need deterministic, recursive object merging semantics.
+ * @since 0.1.0
+ *******************************************************************************/
 final class JsonMerge
 {
    /***************************************************************************
-    * Deep JSON merge helper.
-    *
-    * Why: Config loading overlays several sources (defaults, files, env),
-    * and we need deterministic, recursive object merging semantics.
-    * @since 0.1.0
-    ***************************************************************************/
-   /**
-    * Deep-merges {@code override} into {@code base}. Objects are merged recursively; other types
-    * replace the base value.
-    *
-    * @param base
-    *    base JSON (may be null)
-    * @param override
-    *    override JSON
-    *
-    * @return merged JSON node
-    */
-   /***************************************************************************
-    * Merges override into base using object-wise deep merge.
+    * Deep-merges override into base using object-wise deep merge.
+    * Objects are merged recursively; other types replace the base value.
     *
     * @param base base JSON (may be null)
     * @param override override JSON (may be null)

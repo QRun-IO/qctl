@@ -1,0 +1,23 @@
+{
+    "version": "0.0.2",
+    "description": "CLI for the QRun ecosystem - scaffold, package, and deploy QQQ apps",
+    "homepage": "https://github.com/QRun-IO/qctl",
+    "license": "AGPL-3.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/QRun-IO/qctl/releases/download/v0.0.2/qctl-windows-amd64.exe",
+            "hash": "358aee9b7655afe8f86342ecdbebe150bdda9a1868d1848718876a18faab6f5e"
+        }
+    },
+    "bin": [["qctl-windows-amd64.exe", "qctl"]],
+    "checkver": {
+        "github": "https://github.com/QRun-IO/qctl"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/QRun-IO/qctl/releases/download/v0.0.2/qctl-windows-amd64.exe"
+            }
+        }
+    }
+}

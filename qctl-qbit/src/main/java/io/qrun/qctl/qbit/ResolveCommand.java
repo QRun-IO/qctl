@@ -16,6 +16,7 @@ package io.qrun.qctl.qbit;
 import java.nio.file.Path;
 import io.qrun.qctl.qbit.lock.Lockfile;
 import io.qrun.qctl.qbit.lock.LockfileIO;
+import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -64,7 +65,7 @@ public class ResolveCommand implements Runnable
       catch(Exception e)
       {
          System.err.println("qbit resolve error: " + e.getMessage());
-         System.exit(1);
+         System.exit(ExitCodes.GENERIC);
       }
    }
 }

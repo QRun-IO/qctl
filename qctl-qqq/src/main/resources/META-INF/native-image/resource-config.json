@@ -1,0 +1,10 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": "helpers\\.nashorn\\.js"},
+      {"pattern": "handlebars-v4\\.7\\.7\\.js"},
+      {"pattern": "com/github/jknack/handlebars/.*"},
+      {"pattern": ".*/helpers/.*\\.js"}
+    ]
+  }
+}

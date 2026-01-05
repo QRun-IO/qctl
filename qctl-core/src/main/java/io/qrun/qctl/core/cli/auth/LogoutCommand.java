@@ -15,6 +15,7 @@ package io.qrun.qctl.core.cli.auth;
 
 import io.qrun.qctl.core.auth.TokenStore;
 import io.qrun.qctl.core.sys.SystemPaths;
+import io.qrun.qctl.shared.ExitCodes;
 import picocli.CommandLine.Command;
 
 
@@ -32,7 +33,7 @@ public class LogoutCommand implements Runnable
       catch(Exception e)
       {
          System.err.println("auth logout error: " + e.getMessage());
-         System.exit(1);
+         System.exit(ExitCodes.AUTH);
       }
    }
 

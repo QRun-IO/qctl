@@ -13,6 +13,7 @@
 package io.qrun.qctl.core;
 
 
+import io.qrun.qctl.shared.ExitCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -33,12 +34,13 @@ import picocli.CommandLine.Spec;
 @Command(
    name = "qctl",
    mixinStandardHelpOptions = true,
-   version = { "qctl 0.1.0" },
+   versionProvider = VersionProvider.class,
    description = "qctl CLI",
    subcommands = {
       HelpCommand.class,
       io.qrun.qctl.core.cli.AuthCommand.class,
-      io.qrun.qctl.core.cli.CacheCommand.class
+      io.qrun.qctl.core.cli.CacheCommand.class,
+      io.qrun.qctl.core.cli.DoctorCommand.class
    })
 public class Main implements Runnable
 {
@@ -132,7 +134,7 @@ public class Main implements Runnable
       catch(Exception e)
       {
          log.error("Startup failed", e);
-         System.exit(2);
+         System.exit(ExitCodes.USAGE);
       }
    }
 }
