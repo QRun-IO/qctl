@@ -152,7 +152,7 @@ class NativeBinaryE2ETest
 
       assertThat(result.exitCode).isEqualTo(ExitCodes.SUCCESS);
       assertThat(result.stdout)
-         .contains("Available templates")
+         .contains("Available Templates")
          .contains("new-qqq-application");
    }
 

@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import io.qrun.qctl.core.doctor.DependencyChecker;
+import io.qrun.qctl.core.doctor.DependencyException;
 import io.qrun.qctl.qqq.error.ErrorFormatter;
 import io.qrun.qctl.qqq.error.SuggestionEngine;
 import io.qrun.qctl.qqq.error.TemplateError;
@@ -221,8 +223,25 @@ public class InitCommand implements Callable<Integer>
             // Run post-gen hooks
             if(!skipHooks && manifest.postGen() != null)
             {
-               PostGenHookRunner hookRunner = new PostGenHookRunner();
-               hookRunner.run(effectiveTargetDir, manifest.postGen());
+               //////////////////////////////////////////////////////////////////
+               // Pre-flight dependency checks before running hooks            //
+               //////////////////////////////////////////////////////////////////
+               try
+               {
+                  checkHookDependencies(manifest.postGen(), ui);
+               }
+               catch(DependencyException e)
+               {
+                  ui.warning("Skipping post-gen hooks: " + e.getMessage());
+                  ui.println("Run 'qctl doctor' for installation help.");
+                  skipHooks = true;
+               }
+
+               if(!skipHooks)
+               {
+                  PostGenHookRunner hookRunner = new PostGenHookRunner();
+                  hookRunner.run(effectiveTargetDir, manifest.postGen());
+               }
             }
          }
 
@@ -448,5 +467,55 @@ public class InitCommand implements Callable<Integer>
          }
       }
       return parts;
+   }
+
+
+
+   /***************************************************************************
+    * Check dependencies required by post-gen hooks before running them.
+    *
+    * Examines hook commands and verifies required tools are installed:
+    * - git commands require Git
+    * - mvn commands require Java 21+ and Maven
+    *
+    * @param hooks list of post-gen hooks to check
+    * @param ui console UI for status messages
+    * @throws DependencyException if a required dependency is missing
+    * @since 0.2.0
+    ***************************************************************************/
+   private void checkHookDependencies(List<TemplateManifest.PostGenHook> hooks, ConsoleUI ui)
+         throws DependencyException
+   {
+      boolean needsGit = false;
+      boolean needsMaven = false;
+
+      for(TemplateManifest.PostGenHook hook : hooks)
+      {
+         if(hook.command() == null)
+         {
+            continue;
+         }
+
+         String cmd = hook.command().trim().toLowerCase();
+         if(cmd.startsWith("git "))
+         {
+            needsGit = true;
+         }
+         if(cmd.startsWith("mvn ") || cmd.startsWith("./mvnw ") || cmd.contains("maven"))
+         {
+            needsMaven = true;
+         }
+      }
+
+      if(needsGit)
+      {
+         DependencyChecker.requireGit();
+      }
+
+      if(needsMaven)
+      {
+         DependencyChecker.requireJava(21);
+         DependencyChecker.requireMaven();
+      }
    }
 }

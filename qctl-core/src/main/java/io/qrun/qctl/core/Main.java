@@ -39,7 +39,8 @@ import picocli.CommandLine.Spec;
    subcommands = {
       HelpCommand.class,
       io.qrun.qctl.core.cli.AuthCommand.class,
-      io.qrun.qctl.core.cli.CacheCommand.class
+      io.qrun.qctl.core.cli.CacheCommand.class,
+      io.qrun.qctl.core.cli.DoctorCommand.class
    })
 public class Main implements Runnable
 {
