@@ -189,3 +189,11 @@ mvn test -pl qctl-integration-tests  # E2E tests only
 ## Session Continuity
 
 To continue from last session, see `docs/internal/session-state.md` for current progress and next steps.
+
+## Knowledge base
+
+Reviewed dossier for this repo (commit `c7cf55a99e51`, branch `develop`, 2026-07-04):
+`R:/Git.Local/KofTwentyTwo/second-brain/knowledge/qqq/repos/qctl.md`
+
+QQQ platform hub (cross-repo map, v4.0 impact tracking, licensing follow-ups):
+`R:/Git.Local/KofTwentyTwo/second-brain/knowledge/qqq/qqq-hub.md`
