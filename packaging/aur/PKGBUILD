@@ -1,6 +1,6 @@
 # Maintainer: QRun-IO <contact@qrun.io>
 pkgname=qctl-bin
-pkgver=0.0.2
+pkgver=0.2.0
 pkgrel=1
 pkgdesc="CLI for the QRun ecosystem - scaffold, package, and deploy QQQ apps"
 arch=('x86_64')
@@ -9,7 +9,7 @@ license=('AGPL-3.0')
 provides=('qctl')
 conflicts=('qctl')
 source_x86_64=("https://github.com/QRun-IO/qctl/releases/download/v${pkgver}/qctl-linux-amd64")
-sha256sums_x86_64=('374f0f10a8aa781e1b5b8d72483ec257dfee9794b69419c7700f55ad7fbcf4b3')
+sha256sums_x86_64=('a519fee389b5be2cff2d01b76cc958c3c36156f3f0c2693636afee37c4fc7b1d')
 
 package() {
     install -Dm755 "${srcdir}/qctl-linux-amd64" "${pkgdir}/usr/bin/qctl"
