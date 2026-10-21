@@ -19,7 +19,7 @@ permissions:
   pull-requests: write
 jobs:
   native:
-    uses: QRun-IO/qqq-orb/.github/workflows/qctl-native.yml@9c30a30754c7f5534613635b70fc88357f2024ed
+    uses: QRun-IO/qqq-orb/.github/workflows/qctl-native.yml@0f33ddadf88b9a1b940b8883782fe2000ee1d2bd
     with:
       full_native: ${{ github.event_name == 'workflow_dispatch' && inputs.full_native }}
     secrets: inherit
