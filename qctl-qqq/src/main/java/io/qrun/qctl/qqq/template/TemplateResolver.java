@@ -15,6 +15,7 @@ package io.qrun.qctl.qqq.template;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
 
@@ -44,11 +45,19 @@ public class TemplateResolver
    public Path resolve(String source, String version) throws IOException
    {
       // Local path
-      Path localPath = Path.of(source);
-      if(Files.isDirectory(localPath))
+      try
       {
-         System.out.println("Using local template: " + localPath.toAbsolutePath());
-         return localPath.toAbsolutePath();
+         Path localPath = Path.of(source);
+         if(Files.isDirectory(localPath))
+         {
+            System.out.println("Using local template: " + localPath.toAbsolutePath());
+            return localPath.toAbsolutePath();
+         }
+      }
+      catch(InvalidPathException e)
+      {
+         // Remote URLs are not valid filesystem paths on Windows.
+         // Validate them below using the supported Git URL formats.
       }
 
       // Git URL or GitHub shorthand

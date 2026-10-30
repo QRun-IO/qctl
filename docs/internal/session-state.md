@@ -1,6 +1,22 @@
 # Session State
 
-Last updated: 2026-01-03
+Last updated: 2026-10-30
+
+## Native CI qualification fixes (2026-10-30)
+
+Local native CI exposed three defects: `--no-prompt` omitted declared defaults,
+unknown templates still entered interactive selection, and Windows backslashes
+escaped Velocity path variables. Defaults now apply with validated explicit
+overrides; unknown templates return NOT_FOUND without reading stdin; path
+separators are normalized before interpolation. Interactive fallback remains
+covered separately.
+
+Four non-interactive regressions and a Windows-path regression failed before the
+fixes. On macOS27.2 ARM64/GraalVM21.0.12, full Maven verification, native packaging
+and verification with the built binary passed235 tests across26 reports with
+zero failures/errors/skips. Native tests must run after building the binary;
+the earlier build-before-test arrangement silently skipped10 native E2E cases.
+Exact-commit Gitea macOS/Windows verification and normal PR review remain pending.
 
 ## Current Status
 

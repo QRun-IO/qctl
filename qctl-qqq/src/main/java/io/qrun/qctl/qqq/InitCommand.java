@@ -37,6 +37,7 @@ import io.qrun.qctl.qqq.template.ConsoleUI;
 import io.qrun.qctl.qqq.template.MergeOptions;
 import io.qrun.qctl.qqq.template.PostGenHookRunner;
 import io.qrun.qctl.qqq.template.PromptRunner;
+import io.qrun.qctl.qqq.template.PromptValidator;
 import io.qrun.qctl.qqq.template.TemplateEngine;
 import io.qrun.qctl.qqq.template.TemplateManifest;
 import io.qrun.qctl.qqq.template.TemplateRenderException;
@@ -172,6 +173,21 @@ public class InitCommand implements Callable<Integer>
 
          // Step 4: Collect variables (prompts + CLI overrides)
          Map<String, String> allVars = new LinkedHashMap<>();
+         if(noPrompt && manifest.prompts() != null)
+         {
+            PromptValidator validator = new PromptValidator();
+            for(TemplateManifest.Prompt prompt : manifest.prompts())
+            {
+               String value = variables.getOrDefault(prompt.name(), prompt.defaultValue());
+               PromptValidator.ValidationResult result = validator.validate(prompt, value);
+               if(!result.valid())
+               {
+                  ui.error(result.errorMessage());
+                  return ExitCodes.VALIDATION;
+               }
+               allVars.put(prompt.name(), value);
+            }
+         }
          if(!noPrompt && manifest.prompts() != null && !manifest.prompts().isEmpty())
          {
             PromptRunner promptRunner = new PromptRunner();
@@ -318,6 +334,12 @@ public class InitCommand implements Callable<Integer>
       List<String> templateIds = templates.stream().map(TemplateInfo::id).toList();
       SuggestionEngine suggestionEngine = new SuggestionEngine();
       List<String> suggestions = suggestionEngine.findSimilar(templateName, templateIds);
+      if(noPrompt)
+      {
+         throw new TemplateError(TemplateError.ErrorCategory.TEMPLATE_NOT_FOUND,
+            "Template '" + templateName + "' not found.", suggestions,
+            "Use 'qctl qqq list' to list available templates");
+      }
 
       ui.error("Template '" + templateName + "' not found.");
       if(!suggestions.isEmpty())

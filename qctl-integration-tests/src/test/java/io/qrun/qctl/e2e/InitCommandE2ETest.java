@@ -299,6 +299,82 @@ class InitCommandE2ETest
 
 
    /***************************************************************************
+    * Non-interactive generation applies defaults without consuming stdin.
+    *
+    * @throws IOException if the generated file cannot be read
+    * @since 0.2.1
+    ***************************************************************************/
+   @Test
+   void testInit_noPrompt_usesDefaults() throws IOException
+   {
+      Path outputDir = tempDir.resolve("default-values");
+      harness.execute("qqq", "init", "test-with-prompts", "--no-prompt",
+         "-o", outputDir.toString());
+
+      assertThat(harness.getExitCode()).as(harness.getStderr()).isEqualTo(ExitCodes.SUCCESS);
+      assertThat(Files.readString(outputDir.resolve("README.md")))
+         .contains("my-project", "com.example");
+   }
+
+
+
+   /***************************************************************************
+    * Explicit variables override defaults while omitted variables retain them.
+    *
+    * @throws IOException if the generated file cannot be read
+    * @since 0.2.1
+    ***************************************************************************/
+   @Test
+   void testInit_noPrompt_overridesOneDefault() throws IOException
+   {
+      Path outputDir = tempDir.resolve("override-default");
+      harness.execute("qqq", "init", "test-with-prompts", "--no-prompt",
+         "--var", "projectName=custom-project", "-o", outputDir.toString());
+
+      assertThat(harness.getExitCode()).as(harness.getStderr()).isEqualTo(ExitCodes.SUCCESS);
+      assertThat(Files.readString(outputDir.resolve("README.md")))
+         .contains("custom-project", "com.example");
+   }
+
+
+
+   /***************************************************************************
+    * An unknown template must not fall back to an interactive selection.
+    *
+    * @since 0.2.1
+    ***************************************************************************/
+   @Test
+   void testInit_noPrompt_unknownTemplateReturnsNotFound()
+   {
+      Path outputDir = tempDir.resolve("unknown-template");
+      harness.execute("qqq", "init", "missing-template", "--no-prompt",
+         "-o", outputDir.toString());
+
+      assertThat(harness.getExitCode()).isEqualTo(ExitCodes.NOT_FOUND);
+      assertThat(outputDir).doesNotExist();
+   }
+
+
+
+   /***************************************************************************
+    * Invalid required overrides must fail instead of prompting or using defaults.
+    *
+    * @since 0.2.1
+    ***************************************************************************/
+   @Test
+   void testInit_noPrompt_rejectsEmptyRequiredOverride()
+   {
+      Path outputDir = tempDir.resolve("invalid-override");
+      harness.execute("qqq", "init", "test-with-prompts", "--no-prompt",
+         "--var", "projectName=", "-o", outputDir.toString());
+
+      assertThat(harness.getExitCode()).isEqualTo(ExitCodes.VALIDATION);
+      assertThat(outputDir).doesNotExist();
+   }
+
+
+
+   /***************************************************************************
     * Test combined flags work together.
     *
     * @since 0.2.0
