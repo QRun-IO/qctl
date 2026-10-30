@@ -613,20 +613,19 @@ class InitCommandFullE2ETest
    /***************************************************************************
     * Test behavior when requesting a template that doesn't exist.
     *
-    * With TestTemplateRegistry, non-existent templates cause the system
-    * to fall back to the first available template in --no-prompt mode.
+    * Interactive selection can accept the first available fallback template.
     *
     * @since 0.2.0
     ***************************************************************************/
    @Test
-   void testInit_unknownTemplate_fallsBackToFirst() throws IOException
+   void testInit_unknownTemplate_interactiveFallbackToFirst() throws IOException
    {
       Path outputDir = tempDir.resolve("unknown-template-test");
 
       //////////////////////////////////////////////////////////////////////////
-      // With --no-prompt, requesting unknown template uses first available   //
+      // The empty input accepts the first interactive selection.            //
       //////////////////////////////////////////////////////////////////////////
-      harness.execute("qqq", "init", "non-existent-template", "--no-prompt",
+      harness.execute("qqq", "init", "non-existent-template",
          "-o", outputDir.toString());
 
       //////////////////////////////////////////////////////////////////////////

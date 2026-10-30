@@ -304,6 +304,24 @@ class TemplateEngineTest
 
 
    /***************************************************************************
+    * Windows separators must not escape path placeholders in Velocity.
+    *
+    * @throws TemplateRenderException if rendering fails
+    * @since 0.2.1
+    ***************************************************************************/
+   @Test
+   void testRenderWindowsPathVariables() throws TemplateRenderException
+   {
+      Map<String, String> variables = Map.of("packagePath", "com/acme/orders");
+      assertThat(engine.renderPath("src\\main\\java\\$packagePath\\App.java", variables))
+         .isEqualTo("src/main/java/com/acme/orders/App.java");
+      assertThat(engine.renderPath("src\\main\\java\\__packagePath__\\App.java", variables))
+         .isEqualTo("src/main/java/com/acme/orders/App.java");
+   }
+
+
+
+   /***************************************************************************
     * Test binary files are copied without modification.
     ***************************************************************************/
    @Test

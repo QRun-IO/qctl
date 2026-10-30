@@ -409,7 +409,9 @@ public class TemplateEngine
       // This allows templates to use __VARNAME__ in paths, which is safer   //
       // for shells and build tools that might interpret $ as a variable.    //
       /////////////////////////////////////////////////////////////////////////
-      String normalizedPath = path.replaceAll("__([a-zA-Z][a-zA-Z0-9]*)__", "\\$$1");
+      // Windows separators otherwise escape the following Velocity variable.
+      String normalizedPath = path.replace('\\', '/')
+         .replaceAll("__([a-zA-Z][a-zA-Z0-9]*)__", "\\$$1");
       return renderContent(normalizedPath, variables);
    }
 
